@@ -341,7 +341,9 @@
   const today  = new Date().toISOString().slice(0, 10);
 
   function scrollToToday() {
-    const el = document.getElementById('today-row');
+    // On mobile the table is hidden, so use the mobile card; otherwise use the desktop row
+    const isMobile = window.innerWidth <= 640;
+    const el = document.getElementById(isMobile ? 'today-row-mobile' : 'today-row-desktop');
     if (!el) return;
     const y = el.getBoundingClientRect().top + window.scrollY - 80;
     window.scrollTo({ top: y, behavior: 'smooth' });
@@ -359,7 +361,7 @@
   SCHEDULE.forEach(row => {
     const isToday = row.datum === today;
     const tr = document.createElement('tr');
-    if (isToday) { tr.classList.add('today'); tr.id = 'today-row'; }
+    if (isToday) { tr.classList.add('today'); tr.id = 'today-row-desktop'; }
     const veckaClass = row.vecka === 'Fredag' ? 'fredag' : row.vecka === 'Lördag' ? 'lordag' : row.vecka === 'Söndag' ? 'sondag' : '';
     const badge = isToday ? '<span class="today-badge">Idag</span>' : '';
 
@@ -394,7 +396,7 @@
     const isToday = row.datum === today;
     const card = document.createElement('div');
     card.className = 'day-card-mobile' + (isToday ? ' today' : '');
-    if (isToday) card.id = 'today-row';
+    if (isToday) card.id = 'today-row-mobile';
     const veckaClass = row.vecka === 'Fredag' ? 'fredag' : row.vecka === 'Lördag' ? 'lordag' : row.vecka === 'Söndag' ? 'sondag' : '';
     const badge = isToday ? '<span class="today-badge">Idag</span>' : '';
     card.innerHTML = `
