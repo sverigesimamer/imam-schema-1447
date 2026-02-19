@@ -17,7 +17,6 @@
       --muted: #6b7280;
       --today-bg: #e8f7f0;
       --today-green: #3dba7e;
-
       --abdurrahman: #e8630a;
       --saed: #d4a800;
       --noor: #2980b9;
@@ -90,7 +89,7 @@
     td { padding: 12px 16px; vertical-align: middle; }
     .td-dag { font-weight: 700; font-size: .95rem; color: var(--primary-dark); text-align: center; }
     .td-sidor { font-size: .8rem; color: var(--muted); white-space: nowrap; }
-    .td-surah { font-size: .78rem; color: var(--primary-dark); max-width: 220px; line-height: 1.4; }
+    .td-surah { font-size: .78rem; color: var(--primary-dark); max-width: 240px; line-height: 1.4; }
     .td-datum { font-size: .8rem; color: var(--muted); white-space: nowrap; }
     .td-datum.today-date { color: #1d7a4e; font-weight: 600; }
     .td-veckodag { font-size: .8rem; font-weight: 500; white-space: nowrap; }
@@ -110,6 +109,42 @@
     .imam-guest .dot { background: rgba(0,0,0,.15) !important; }
     .today-badge { display: inline-block; background: var(--today-green); color: #fff; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 2px 6px; border-radius: 8px; margin-left: 5px; vertical-align: middle; }
 
+    /* TOOLTIP */
+    .surah-cell { position: relative; cursor: pointer; }
+    .surah-names { font-size: .78rem; color: var(--primary-dark); line-height: 1.5; }
+    .surah-names span { display: inline; }
+
+    .tooltip-box {
+      display: none;
+      position: absolute;
+      left: 0; top: calc(100% + 6px);
+      background: var(--primary-dark);
+      color: #fff;
+      font-size: .75rem;
+      font-weight: 500;
+      padding: 7px 12px;
+      border-radius: 8px;
+      white-space: nowrap;
+      z-index: 100;
+      box-shadow: 0 4px 16px rgba(0,0,0,.25);
+      letter-spacing: .02em;
+      pointer-events: none;
+    }
+    .tooltip-box::before {
+      content: '';
+      position: absolute;
+      top: -5px; left: 12px;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-bottom: 5px solid var(--primary-dark);
+    }
+    /* Desktop: show on hover */
+    @media (hover: hover) {
+      .surah-cell:hover .tooltip-box { display: block; }
+    }
+    /* Mobile: show on click (toggled via JS) */
+    .tooltip-box.visible { display: block; }
+
     /* MOBILE CARDS */
     .mobile-cards { display: none; }
     .day-card-mobile { background: var(--white); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 2px 12px rgba(36,100,93,.08); border-left: 4px solid transparent; }
@@ -123,8 +158,24 @@
     .dcm-date { font-size: .75rem; color: var(--muted); }
     .dcm-day-label { font-size: .75rem; font-weight: 500; }
     .dcm-pages { font-size: .75rem; color: var(--muted); background: rgba(36,100,93,.08); padding: 2px 8px; border-radius: 10px; }
-    .dcm-surahs { margin-left: 46px; font-size: .78rem; color: var(--primary-dark); background: rgba(36,100,93,.06); border-radius: 8px; padding: 6px 10px; line-height: 1.5; }
+    .dcm-surahs {
+      margin-left: 46px; font-size: .78rem; color: var(--primary-dark);
+      background: rgba(36,100,93,.06); border-radius: 8px; padding: 6px 10px; line-height: 1.5;
+      position: relative; cursor: pointer;
+    }
     .dcm-surahs-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); display: block; margin-bottom: 2px; }
+    .dcm-tooltip {
+      display: none;
+      margin-top: 6px;
+      background: var(--primary-dark);
+      color: #fff;
+      font-size: .75rem;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: 7px;
+      letter-spacing: .02em;
+    }
+    .dcm-tooltip.visible { display: block; }
 
     footer { background: var(--primary-dark); text-align: center; padding: 24px 20px; color: rgba(255,255,255,.45); font-size: .8rem; letter-spacing: .05em; }
     footer strong { color: var(--gold); }
@@ -190,7 +241,7 @@
           <span class="today-surahs-value" id="today-surahs">—</span>
         </div>
       </div>
-      <button class="today-scroll-btn" onclick="document.getElementById('today-row').scrollIntoView({behavior:'smooth',block:'center'})">↓ Se i schemat</button>
+      <button class="today-scroll-btn" onclick="scrollToToday()">↓ Se i schemat</button>
     </div>
   </div>
 
@@ -238,42 +289,58 @@
 </footer>
 
 <script>
+  // tooltip = "Surah:Aya – Surah:Aya" format
+  // surahs = display names without numbers
   const SCHEDULE = [
-    {day:1,  sidor:'2–11',    imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-02-17', vecka:'Tisdag',   surahs:'2. Al-Baqarah'},
-    {day:2,  sidor:'11–21',  imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-18', vecka:'Onsdag',   surahs:'2. Al-Baqarah'},
-    {day:3,  sidor:'22–31',  imam:'noor',        imamLabel:'Noor',               datum:'2026-02-19', vecka:'Torsdag',  surahs:'2. Al-Baqarah'},
-    {day:4,  sidor:'32–41',  imam:'abdul',       imamLabel:'Abdul Qadir',        datum:'2026-02-20', vecka:'Fredag',   surahs:'2. Al-Baqarah'},
-    {day:5,  sidor:'42–51',  imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-02-21', vecka:'Lördag',   surahs:'2. Al-Baqarah, 3. Ali Imran'},
-    {day:6,  sidor:'51–62',  imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-02-22', vecka:'Söndag',   surahs:'3. Ali Imran'},
-    {day:7,  sidor:'62–72',  imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-02-23', vecka:'Måndag',   surahs:'3. Ali Imran'},
-    {day:8,  sidor:'72–81',  imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-02-24', vecka:'Tisdag',   surahs:'3. Ali Imran, 4. An-Nisa'},
-    {day:9,  sidor:'82–92',  imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-02-25', vecka:'Onsdag',   surahs:'4. An-Nisa'},
-    {day:10, sidor:'92–101', imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-26', vecka:'Torsdag',  surahs:'4. An-Nisa'},
-    {day:11, sidor:'102–106',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-02-27', vecka:'Fredag',   surahs:'4. An-Nisa, 35. Fatir'},
-    {day:12, sidor:'438–449',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-28', vecka:'Lördag',   surahs:'35. Fatir, 36. Ya-Sin'},
-    {day:13, sidor:'449–458',imam:'guest',       imamLabel:'Gäst',               datum:'2026-03-01', vecka:'Söndag',   surahs:'36. Ya-Sin, 37. As-Saffat, 38. Sad'},
-    {day:14, sidor:'458–467',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-03-02', vecka:'Måndag',   surahs:'39. Az-Zumar'},
-    {day:15, sidor:'467–476',imam:'noor',        imamLabel:'Noor',               datum:'2026-03-03', vecka:'Tisdag',   surahs:'40. Ghafir'},
-    {day:16, sidor:'476–486',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-03-04', vecka:'Onsdag',   surahs:'41. Fussilat, 42. Ash-Shura'},
-    {day:17, sidor:'486–495',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-03-05', vecka:'Torsdag',  surahs:'42. Ash-Shura, 43. Az-Zukhruf'},
-    {day:18, sidor:'496–506',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-03-06', vecka:'Fredag',   surahs:'44. Ad-Dukhan, 45. Al-Jathiyah, 46. Al-Ahqaf'},
-    {day:19, sidor:'507–515',imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-03-07', vecka:'Lördag',   surahs:'47. Muhammad, 48. Al-Fath'},
-    {day:20, sidor:'515–523',imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-03-08', vecka:'Söndag',   surahs:'49. Al-Hujurat, 50. Qaf, 51. Adh-Dhariyat'},
-    {day:21, sidor:'523–531',imam:'noor',        imamLabel:'Noor',               datum:'2026-03-09', vecka:'Måndag',   surahs:'52. At-Tur, 53. An-Najm, 54. Al-Qamar'},
-    {day:22, sidor:'531–539',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-03-10', vecka:'Tisdag',   surahs:'55. Ar-Rahman, 56. Al-Waqiah, 57. Al-Hadid'},
-    {day:23, sidor:'539–548',imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-03-11', vecka:'Onsdag',   surahs:'57. Al-Hadid, 58. Al-Mujadilah, 59. Al-Hashr'},
-    {day:24, sidor:'549–557',imam:'abdul',       imamLabel:'Abdul Qadir',        datum:'2026-03-12', vecka:'Torsdag',  surahs:'60. Al-Mumtahanah, 61. As-Saf, 62. Al-Jumuah, 63. Al-Munafiqun, 64. At-Taghabun'},
-    {day:25, sidor:'558–566',imam:'guest',       imamLabel:'Gäst',               datum:'2026-03-13', vecka:'Fredag',   surahs:'65. At-Talaq, 66. At-Tahrim, 67. Al-Mulk, 68. Al-Qalam'},
-    {day:26, sidor:'566–574',imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-03-14', vecka:'Lördag',   surahs:'69. Al-Haqqah, 70. Al-Maarij, 71. Nuh, 72. Al-Jinn, 73. Al-Muzzammil'},
-    {day:27, sidor:'575–583',imam:'noor',        imamLabel:'Noor',               datum:'2026-03-15', vecka:'Söndag',   surahs:'74. Al-Muddaththir, 75. Al-Qiyamah, 76. Al-Insan, 77. Al-Mursalat, 78. An-Naba'},
-    {day:28, sidor:'583–591',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-03-16', vecka:'Måndag',   surahs:'79. An-Naziat, 80. Abasa, 81. At-Takwir, 82. Al-Infitar, 83. Al-Mutaffifin, 84. Al-Inshiqaq, 85. Al-Buruj, 86. At-Tariq, 87. Al-Ala'},
-    {day:29, sidor:'592–604',imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-03-17', vecka:'Tisdag',   surahs:'88. Al-Ghashiyah, 89. Al-Fajr, 90. Al-Balad, 91. Ash-Shams, 92. Al-Layl, 93. Ad-Duha, 94. Ash-Sharh, 95. At-Tin, 96. Al-Alaq, 97. Al-Qadr, 98. Al-Bayyinah, 99. Az-Zalzalah, 100. Al-Adiyat, 101. Al-Qariah, 102. At-Takathur, 103. Al-Asr, 104. Al-Humazah, 105. Al-Fil, 106. Quraysh, 107. Al-Maun, 108. Al-Kawthar, 109. Al-Kafirun, 110. An-Nasr, 111. Al-Masad, 112. Al-Ikhlas, 113. Al-Falaq, 114. An-Nas'},
-    {day:30, sidor:'2–11',   imam:'noor',        imamLabel:'Noor',               datum:'2026-03-18', vecka:'Onsdag',   surahs:'2. Al-Baqarah'},
+    {day:1,  sidor:'2–11',    imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-02-17', vecka:'Tisdag',   surahs:'Al-Baqarah',                                                                                                        tooltip:'2:1 – 2:74'},
+    {day:2,  sidor:'11–21',  imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-18', vecka:'Onsdag',   surahs:'Al-Baqarah',                                                                                                        tooltip:'2:75 – 2:141'},
+    {day:3,  sidor:'22–31',  imam:'noor',        imamLabel:'Noor',               datum:'2026-02-19', vecka:'Torsdag',  surahs:'Al-Baqarah',                                                                                                        tooltip:'2:142 – 2:202'},
+    {day:4,  sidor:'32–41',  imam:'abdul',       imamLabel:'Abdul Qadir',        datum:'2026-02-20', vecka:'Fredag',   surahs:'Al-Baqarah',                                                                                                        tooltip:'2:203 – 2:265'},
+    {day:5,  sidor:'42–51',  imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-02-21', vecka:'Lördag',   surahs:'Al-Baqarah, Ali Imran',                                                                                             tooltip:'2:266 – 3:14'},
+    {day:6,  sidor:'51–62',  imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-02-22', vecka:'Söndag',   surahs:'Ali Imran',                                                                                                         tooltip:'3:15 – 3:92'},
+    {day:7,  sidor:'62–72',  imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-02-23', vecka:'Måndag',   surahs:'Ali Imran',                                                                                                         tooltip:'3:93 – 3:170'},
+    {day:8,  sidor:'72–81',  imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-02-24', vecka:'Tisdag',   surahs:'Ali Imran, An-Nisa',                                                                                                tooltip:'3:171 – 4:23'},
+    {day:9,  sidor:'82–92',  imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-02-25', vecka:'Onsdag',   surahs:'An-Nisa',                                                                                                           tooltip:'4:24 – 4:87'},
+    {day:10, sidor:'92–101', imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-26', vecka:'Torsdag',  surahs:'An-Nisa',                                                                                                           tooltip:'4:88 – 4:147'},
+    {day:11, sidor:'102–106',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-02-27', vecka:'Fredag',   surahs:'An-Nisa, Fatir',                                                                                                    tooltip:'4:148 – 35:30'},
+    {day:12, sidor:'438–449',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-28', vecka:'Lördag',   surahs:'Fatir, Ya-Sin',                                                                                                     tooltip:'35:31 – 36:82'},
+    {day:13, sidor:'449–458',imam:'guest',       imamLabel:'Gäst',               datum:'2026-03-01', vecka:'Söndag',   surahs:'Ya-Sin, As-Saffat, Sad',                                                                                            tooltip:'36:83 – 38:88'},
+    {day:14, sidor:'458–467',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-03-02', vecka:'Måndag',   surahs:'Az-Zumar',                                                                                                          tooltip:'39:1 – 39:75'},
+    {day:15, sidor:'467–476',imam:'noor',        imamLabel:'Noor',               datum:'2026-03-03', vecka:'Tisdag',   surahs:'Ghafir',                                                                                                            tooltip:'40:1 – 40:85'},
+    {day:16, sidor:'476–486',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-03-04', vecka:'Onsdag',   surahs:'Fussilat, Ash-Shura',                                                                                               tooltip:'41:1 – 42:26'},
+    {day:17, sidor:'486–495',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-03-05', vecka:'Torsdag',  surahs:'Ash-Shura, Az-Zukhruf',                                                                                             tooltip:'42:27 – 43:89'},
+    {day:18, sidor:'496–506',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-03-06', vecka:'Fredag',   surahs:'Ad-Dukhan, Al-Jathiyah, Al-Ahqaf',                                                                                  tooltip:'44:1 – 46:35'},
+    {day:19, sidor:'507–515',imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-03-07', vecka:'Lördag',   surahs:'Muhammad, Al-Fath',                                                                                                 tooltip:'47:1 – 48:29'},
+    {day:20, sidor:'515–523',imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-03-08', vecka:'Söndag',   surahs:'Al-Hujurat, Qaf, Adh-Dhariyat',                                                                                     tooltip:'49:1 – 51:60'},
+    {day:21, sidor:'523–531',imam:'noor',        imamLabel:'Noor',               datum:'2026-03-09', vecka:'Måndag',   surahs:'At-Tur, An-Najm, Al-Qamar',                                                                                         tooltip:'52:1 – 54:55'},
+    {day:22, sidor:'531–539',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-03-10', vecka:'Tisdag',   surahs:'Ar-Rahman, Al-Waqiah, Al-Hadid',                                                                                    tooltip:'55:1 – 57:15'},
+    {day:23, sidor:'539–548',imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-03-11', vecka:'Onsdag',   surahs:'Al-Hadid, Al-Mujadilah, Al-Hashr',                                                                                  tooltip:'57:16 – 59:24'},
+    {day:24, sidor:'549–557',imam:'abdul',       imamLabel:'Abdul Qadir',        datum:'2026-03-12', vecka:'Torsdag',  surahs:'Al-Mumtahanah, As-Saf, Al-Jumuah, Al-Munafiqun, At-Taghabun',                                                       tooltip:'60:1 – 64:18'},
+    {day:25, sidor:'558–566',imam:'guest',       imamLabel:'Gäst',               datum:'2026-03-13', vecka:'Fredag',   surahs:'At-Talaq, At-Tahrim, Al-Mulk, Al-Qalam',                                                                            tooltip:'65:1 – 68:52'},
+    {day:26, sidor:'566–574',imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-03-14', vecka:'Lördag',   surahs:'Al-Haqqah, Al-Maarij, Nuh, Al-Jinn, Al-Muzzammil',                                                                  tooltip:'69:1 – 73:20'},
+    {day:27, sidor:'575–583',imam:'noor',        imamLabel:'Noor',               datum:'2026-03-15', vecka:'Söndag',   surahs:'Al-Muddaththir, Al-Qiyamah, Al-Insan, Al-Mursalat, An-Naba',                                                         tooltip:'74:1 – 78:40'},
+    {day:28, sidor:'583–591',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-03-16', vecka:'Måndag',   surahs:'An-Naziat, Abasa, At-Takwir, Al-Infitar, Al-Mutaffifin, Al-Inshiqaq, Al-Buruj, At-Tariq, Al-Ala',                    tooltip:'79:1 – 87:19'},
+    {day:29, sidor:'592–604',imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-03-17', vecka:'Tisdag',   surahs:'Al-Ghashiyah, Al-Fajr, Al-Balad, Ash-Shams, Al-Layl, Ad-Duha, Ash-Sharh, At-Tin, Al-Alaq, Al-Qadr, Al-Bayyinah, Az-Zalzalah, Al-Adiyat, Al-Qariah, At-Takathur, Al-Asr, Al-Humazah, Al-Fil, Quraysh, Al-Maun, Al-Kawthar, Al-Kafirun, An-Nasr, Al-Masad, Al-Ikhlas, Al-Falaq, An-Nas', tooltip:'88:1 – 114:6'},
+    {day:30, sidor:'2–11',   imam:'noor',        imamLabel:'Noor',               datum:'2026-03-18', vecka:'Onsdag',   surahs:'Al-Baqarah',                                                                                                        tooltip:'2:1 – 2:74'},
   ];
 
   const DAYS   = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
   const MONTHS = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
   const today  = new Date().toISOString().slice(0, 10);
+
+  function scrollToToday() {
+    const el = document.getElementById('today-row');
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + window.scrollY - 80;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  }
+
+  // Close all tooltips on outside click (mobile)
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.surah-cell') && !e.target.closest('.dcm-surahs')) {
+      document.querySelectorAll('.tooltip-box.visible, .dcm-tooltip.visible').forEach(el => el.classList.remove('visible'));
+    }
+  });
 
   // Build desktop table rows
   const tbody = document.getElementById('table-body');
@@ -283,14 +350,29 @@
     if (isToday) { tr.classList.add('today'); tr.id = 'today-row'; }
     const veckaClass = row.vecka === 'Fredag' ? 'fredag' : row.vecka === 'Lördag' ? 'lordag' : row.vecka === 'Söndag' ? 'sondag' : '';
     const badge = isToday ? '<span class="today-badge">Idag</span>' : '';
+
     tr.innerHTML = `
       <td class="td-dag">${row.day}</td>
       <td class="td-sidor">${row.sidor}</td>
-      <td class="td-surah">${row.surahs}</td>
+      <td class="td-surah surah-cell" tabindex="0">
+        <div class="surah-names">${row.surahs}</div>
+        <div class="tooltip-box">📖 ${row.tooltip}</div>
+      </td>
       <td><span class="imam-chip imam-${row.imam}"><span class="dot"></span>${row.imamLabel}</span></td>
       <td class="td-datum ${isToday ? 'today-date' : ''}">${row.datum}${badge}</td>
       <td class="td-veckodag ${veckaClass}">${row.vecka}</td>
     `;
+
+    // Mobile click toggle for tooltip
+    const cell = tr.querySelector('.surah-cell');
+    cell.addEventListener('click', (e) => {
+      const tip = cell.querySelector('.tooltip-box');
+      const isVisible = tip.classList.contains('visible');
+      document.querySelectorAll('.tooltip-box.visible').forEach(el => el.classList.remove('visible'));
+      if (!isVisible) tip.classList.add('visible');
+      e.stopPropagation();
+    });
+
     tbody.appendChild(tr);
   });
 
@@ -316,10 +398,22 @@
         </div>
       </div>
       <div class="dcm-surahs">
-        <span class="dcm-surahs-label">Suror</span>
+        <span class="dcm-surahs-label">Suror — tryck för detaljer</span>
         ${row.surahs}
+        <div class="dcm-tooltip">📖 ${row.tooltip}</div>
       </div>
     `;
+
+    // Toggle tooltip on tap
+    const surahBox = card.querySelector('.dcm-surahs');
+    surahBox.addEventListener('click', (e) => {
+      const tip = surahBox.querySelector('.dcm-tooltip');
+      const isVisible = tip.classList.contains('visible');
+      document.querySelectorAll('.dcm-tooltip.visible').forEach(el => el.classList.remove('visible'));
+      if (!isVisible) tip.classList.add('visible');
+      e.stopPropagation();
+    });
+
     container.appendChild(card);
   });
 
@@ -330,7 +424,7 @@
     document.getElementById('today-imam-name').textContent = todayData.imamLabel;
     document.getElementById('today-date-label').textContent = DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()];
     document.getElementById('today-pages').textContent = 'Sidor ' + todayData.sidor;
-    document.getElementById('today-surahs').textContent = todayData.surahs;
+    document.getElementById('today-surahs').textContent = todayData.surahs + '  (' + todayData.tooltip + ')';
     document.getElementById('today-avatar').textContent = todayData.imamLabel.charAt(0);
     document.getElementById('today-card').style.display = 'block';
     setTimeout(() => {
