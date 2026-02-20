@@ -66,7 +66,8 @@
     .today-surahs-value { font-size: .82rem; color: var(--text); font-weight: 500; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .today-hadith { display: flex; align-items: flex-start; gap: 6px; margin-top: 6px; font-size: .75rem; color: var(--muted); font-style: italic; line-height: 1.5; }
     .today-hadith .moon-small { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #0f2d5e; flex-shrink: 0; margin-top: 1px; }
-    .today-scroll-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--primary); color: #fff; font-size: .75rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; padding: 8px 16px; border-radius: 30px; border: none; cursor: pointer; font-family: inherit; white-space: nowrap; align-self: flex-start; margin-top: 4px; }
+    .today-scroll-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--primary); color: #fff; font-size: .75rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; padding: 8px 16px; border-radius: 30px; border: none; cursor: pointer; font-family: inherit; white-space: nowrap; align-self: flex-start; margin-top: 4px; box-shadow: 0 4px 14px rgba(0,0,0,.18); transition: box-shadow 0.2s ease, transform 0.2s ease; }
+    .today-scroll-btn:hover { box-shadow: 0 6px 20px rgba(0,0,0,.26); transform: translateY(-1px); }
 
     /* SECTION TITLE */
     .section-title { text-align: center; margin-bottom: 20px; }
@@ -341,6 +342,14 @@
     .day-card-mobile.last-ten.today .dcm-dag.today-day { color: #7eb8f7 !important; }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes avatarPulse {
+      0%   { box-shadow: 0 0 0 0 var(--avatar-pulse, rgba(255,255,255,0.4)); }
+      60%  { box-shadow: 0 0 0 12px rgba(0,0,0,0); }
+      100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+    }
+    .today-avatar.pulsing {
+      animation: avatarPulse 3.5s ease-out infinite;
+    }
     @keyframes chipPulse {
       0%   { box-shadow: 0 0 0 0 var(--pulse-color, rgba(0,0,0,0.4)); }
       50%  { box-shadow: 0 0 0 10px rgba(0,0,0,0); }
@@ -677,7 +686,20 @@
       `;
       document.getElementById('today-surahs').parentNode.appendChild(hadithEl);
     }
-    document.getElementById('today-avatar').textContent = todayData.imamLabel.charAt(0);
+    const avatarEl = document.getElementById('today-avatar');
+    avatarEl.textContent = todayData.imamLabel.charAt(0);
+    const avatarPulseColors = {
+      abdurrahman: 'rgba(232,99,10,0.55)',
+      saed:        'rgba(212,168,0,0.55)',
+      noor:        'rgba(41,128,185,0.55)',
+      abdul:       'rgba(100,100,100,0.55)',
+      mohammed:    'rgba(33,145,80,0.55)',
+      yacquub:     'rgba(125,58,172,0.55)',
+      guest:       'rgba(142,158,171,0.55)',
+    };
+    const pulseColor = avatarPulseColors[todayData.imam] || 'rgba(255,255,255,0.4)';
+    avatarEl.style.setProperty('--avatar-pulse', pulseColor);
+    avatarEl.classList.add('pulsing');
     document.getElementById('today-card').style.display = 'block';
     setTimeout(() => {
       const card = document.getElementById('today-card');
