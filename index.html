@@ -342,12 +342,49 @@
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 
+    /* FILTER */
+    .filter-wrap { margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .filter-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--white); border: 1.5px solid transparent;
+      border-radius: 30px; padding: 5px 12px 5px 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      font-size: .78rem; font-weight: 500; font-family: inherit;
+      cursor: pointer; color: var(--text);
+      transition: all 0.2s ease;
+    }
+    .filter-chip:hover { box-shadow: 0 3px 12px rgba(0,0,0,.12); transform: translateY(-1px); }
+    .filter-chip.active {
+      background: var(--primary-dark); color: #fff;
+      border-color: var(--primary-dark);
+      box-shadow: 0 4px 14px rgba(26,74,68,.3);
+    }
+    .filter-chip.active .filter-dot { border-color: rgba(255,255,255,.4) !important; }
+    .filter-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .filter-clear {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: none; border: 1.5px solid var(--muted);
+      border-radius: 30px; padding: 4px 14px;
+      font-size: .75rem; font-weight: 500; font-family: inherit;
+      color: var(--muted); cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .filter-clear:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* hidden rows */
+    tbody tr.filtered-out { display: none; }
+    .day-card-mobile.filtered-out { display: none; }
+
     @media (max-width: 640px) {
       header { padding: 40px 16px 60px; }
       main { padding: 24px 12px 60px; }
       .table-wrap { display: none; }
       .mobile-cards { display: block; }
-      .legend { display: none; }
+      .filter-chips { flex-direction: column; align-items: stretch; width: 100%; }
+      .filter-chip { justify-content: flex-start; border-radius: 12px; padding: 8px 14px 8px 10px; font-size: .85rem; }
+      .filter-wrap { align-items: stretch; }
+      .filter-clear { align-self: center; }
     }
   </style>
 </head>
@@ -411,15 +448,18 @@
     <div class="divider"><span></span><i></i><span></span></div>
   </div>
 
-  <!-- LEGEND -->
-  <div class="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:var(--abdurrahman)"></div>Abdurrahman Sudani</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--saed);border:1px solid #ccc"></div>Saed Magan</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--noor)"></div>Noor</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--abdul)"></div>Abdul Qadir</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--mohammed)"></div>Mohammed Haji</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--yacquub)"></div>Yacquub</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--guest);border:1px solid #ccc"></div>Gäst</div>
+  <!-- FILTER -->
+  <div class="filter-wrap" id="filter-wrap">
+    <div class="filter-chips" id="filter-chips">
+      <button class="filter-chip" data-imam="abdurrahman" onclick="toggleFilter('abdurrahman')"><span class="filter-dot" style="background:var(--abdurrahman)"></span>Abdurrahman Sudani</button>
+      <button class="filter-chip" data-imam="saed" onclick="toggleFilter('saed')"><span class="filter-dot" style="background:var(--saed);border:1px solid #bbb"></span>Saed Magan</button>
+      <button class="filter-chip" data-imam="noor" onclick="toggleFilter('noor')"><span class="filter-dot" style="background:var(--noor)"></span>Noor</button>
+      <button class="filter-chip" data-imam="abdul" onclick="toggleFilter('abdul')"><span class="filter-dot" style="background:var(--abdul)"></span>Abdul Qadir</button>
+      <button class="filter-chip" data-imam="mohammed" onclick="toggleFilter('mohammed')"><span class="filter-dot" style="background:var(--mohammed)"></span>Mohammed Haji</button>
+      <button class="filter-chip" data-imam="yacquub" onclick="toggleFilter('yacquub')"><span class="filter-dot" style="background:var(--yacquub)"></span>Yacquub</button>
+      <button class="filter-chip" data-imam="guest" onclick="toggleFilter('guest')"><span class="filter-dot" style="background:var(--guest);border:1px solid #bbb"></span>Gäst</button>
+    </div>
+    <button class="filter-clear" id="filter-clear" onclick="clearFilter()" style="display:none">✕ Ta bort filter</button>
   </div>
 
   <!-- DESKTOP TABLE -->
@@ -654,6 +694,88 @@
       }
       requestAnimationFrame(step);
     }, 600);
+  }
+
+  // ── FILTER ──
+  let activeFilter = null;
+
+  function toggleFilter(imam) {
+    activeFilter = (activeFilter === imam) ? null : imam;
+    applyFilter();
+  }
+
+  function clearFilter() {
+    activeFilter = null;
+    applyFilter();
+  }
+
+  function applyFilter() {
+    // Lock body width before any DOM changes to prevent scrollbar-caused layout shift
+    document.body.style.width = document.body.offsetWidth + 'px';
+    document.body.style.overflowY = 'hidden';
+
+    // Update chip states
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.imam === activeFilter);
+    });
+    document.getElementById('filter-clear').style.display = activeFilter ? 'inline-flex' : 'none';
+
+    // Hide non-matching instantly
+    document.querySelectorAll('#table-body tr').forEach(tr => {
+      const chip = tr.querySelector('.imam-chip');
+      const show = !activeFilter || (chip && chip.classList.contains('imam-' + activeFilter));
+      tr.classList.toggle('filtered-out', !show);
+    });
+    document.querySelectorAll('#mobile-cards .day-card-mobile').forEach(card => {
+      const chip = card.querySelector('.imam-chip');
+      const show = !activeFilter || (chip && chip.classList.contains('imam-' + activeFilter));
+      card.classList.toggle('filtered-out', !show);
+    });
+
+    // Animate visible rows in with stagger
+    const visibleRows = [...document.querySelectorAll('#table-body tr:not(.filtered-out)')];
+    const visibleCards = [...document.querySelectorAll('#mobile-cards .day-card-mobile:not(.filtered-out)')];
+    const total = visibleRows.length + visibleCards.length;
+    const lastDelay = Math.max(
+      visibleRows.length ? (visibleRows.length - 1) * 45 + 320 : 0,
+      visibleCards.length ? (visibleCards.length - 1) * 55 + 320 : 0
+    );
+
+    visibleRows.forEach((tr, i) => {
+      tr.style.opacity = '0';
+      tr.style.transform = 'translateY(8px)';
+      tr.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      setTimeout(() => {
+        tr.style.opacity = '1';
+        tr.style.transform = 'translateY(0)';
+        setTimeout(() => {
+          tr.style.transition = 'background .15s';
+          tr.style.opacity = '';
+          tr.style.transform = '';
+        }, 320);
+      }, i * 45);
+    });
+
+    visibleCards.forEach((card, i) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(10px)';
+      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+        setTimeout(() => {
+          card.style.transition = '';
+          card.style.opacity = '';
+          card.style.transform = '';
+        }, 320);
+      }, i * 55);
+    });
+
+    // Release lock after all animations are done
+    setTimeout(() => {
+      document.body.style.width = '';
+      document.body.style.overflowY = '';
+    }, lastDelay + 50);
   }
 </script>
 </body>
