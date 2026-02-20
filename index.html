@@ -63,7 +63,9 @@
     .today-pages-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
     .today-pages-value { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; color: var(--primary-dark); }
     .today-surahs-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-top: 2px; }
-    .today-surahs-value { font-size: .82rem; color: var(--text); font-weight: 500; line-height: 1.5; }
+    .today-surahs-value { font-size: .82rem; color: var(--text); font-weight: 500; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .today-hadith { display: flex; align-items: flex-start; gap: 6px; margin-top: 6px; font-size: .75rem; color: var(--muted); font-style: italic; line-height: 1.5; }
+    .today-hadith .moon-small { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #0f2d5e; flex-shrink: 0; margin-top: 1px; }
     .today-scroll-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--primary); color: #fff; font-size: .75rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; padding: 8px 16px; border-radius: 30px; border: none; cursor: pointer; font-family: inherit; white-space: nowrap; align-self: flex-start; margin-top: 4px; }
 
     /* SECTION TITLE */
@@ -235,7 +237,6 @@
       align-items: center;
     }
     .moon-tooltip {
-      display: none;
       position: absolute;
       bottom: calc(100% + 8px);
       right: 0;
@@ -250,6 +251,10 @@
       z-index: 200;
       pointer-events: none;
       font-style: italic;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(4px);
+      transition: opacity 0.35s ease, visibility 0.35s ease, transform 0.35s ease;
     }
     .moon-tooltip::after {
       content: '';
@@ -259,7 +264,12 @@
       border-right: 6px solid transparent;
       border-top: 6px solid #0f2d5e;
     }
-    .moon-wrap:hover .moon-tooltip { display: block; }
+    .moon-wrap:hover .moon-tooltip,
+    .moon-wrap.active .moon-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
 
     /* Today card moon */
     .today-moon-wrap {
@@ -282,11 +292,10 @@
       50% { box-shadow: 0 0 0 6px rgba(58,123,213,0); }
     }
     .today-moon-tooltip {
-      display: none;
       position: absolute;
       bottom: calc(100% + 8px);
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%) translateY(4px);
       width: 240px;
       background: #0f2d5e;
       color: #fff;
@@ -298,6 +307,9 @@
       z-index: 200;
       pointer-events: none;
       font-style: italic;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.35s ease, visibility 0.35s ease, transform 0.35s ease;
     }
     .today-moon-tooltip::after {
       content: '';
@@ -308,7 +320,12 @@
       border-right: 6px solid transparent;
       border-top: 6px solid #0f2d5e;
     }
-    .today-moon-wrap:hover .today-moon-tooltip { display: block; }
+    .today-moon-wrap:hover .today-moon-tooltip,
+    .today-moon-wrap.active .today-moon-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
 
     /* mobile last-ten */
     .day-card-mobile.last-ten { background: var(--white); }
@@ -486,6 +503,20 @@
     if (!e.target.closest('.surah-cell') && !e.target.closest('.dcm-surahs')) {
       document.querySelectorAll('.tooltip-box.visible, .dcm-tooltip.visible').forEach(el => el.classList.remove('visible'));
     }
+    if (!e.target.closest('.moon-wrap') && !e.target.closest('.today-moon-wrap')) {
+      document.querySelectorAll('.moon-wrap.active, .today-moon-wrap.active').forEach(el => el.classList.remove('active'));
+    }
+  });
+
+  // Moon tap toggle for mobile
+  document.addEventListener('click', (e) => {
+    const moonWrap = e.target.closest('.moon-wrap, .today-moon-wrap');
+    if (moonWrap) {
+      const isActive = moonWrap.classList.contains('active');
+      document.querySelectorAll('.moon-wrap.active, .today-moon-wrap.active').forEach(el => el.classList.remove('active'));
+      if (!isActive) moonWrap.classList.add('active');
+      e.stopPropagation();
+    }
   });
 
   // Build desktop table rows
@@ -591,6 +622,17 @@
     }
     document.getElementById('today-pages').textContent = 'Sidor ' + todayData.sidor;
     document.getElementById('today-surahs').textContent = todayData.surahs + '  (' + todayData.tooltip + ')';
+
+    // Add hadith row below suror for last-ten nights
+    if (todayData.day >= 21) {
+      const hadithEl = document.createElement('div');
+      hadithEl.className = 'today-hadith';
+      hadithEl.innerHTML = `
+        <span class="moon-small"><svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+        <span>Profeten ﷺ sade: "Den som står upp i nattbön under Laylatul-Qadr med tro och i hopp om belöning får sina tidigare synder förlåtna." [al-Bukhari och Muslim]</span>
+      `;
+      document.getElementById('today-surahs').parentNode.appendChild(hadithEl);
+    }
     document.getElementById('today-avatar').textContent = todayData.imamLabel.charAt(0);
     document.getElementById('today-card').style.display = 'block';
     setTimeout(() => {
