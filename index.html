@@ -381,10 +381,10 @@
       main { padding: 24px 12px 60px; }
       .table-wrap { display: none; }
       .mobile-cards { display: block; }
-      .filter-chips { flex-direction: column; align-items: stretch; width: 100%; }
-      .filter-chip { justify-content: flex-start; border-radius: 12px; padding: 8px 14px 8px 10px; font-size: .85rem; }
-      .filter-wrap { align-items: stretch; }
-      .filter-clear { align-self: center; }
+      .filter-chips { flex-direction: row; flex-wrap: wrap; justify-content: flex-start; width: 100%; gap: 8px; }
+      .filter-chip { justify-content: flex-start; border-radius: 30px; padding: 6px 12px 6px 8px; font-size: .8rem; flex: 0 1 auto; }
+      .filter-wrap { align-items: flex-start; }
+      .filter-clear { align-self: flex-start; }
     }
   </style>
 </head>
@@ -702,6 +702,18 @@
   function toggleFilter(imam) {
     activeFilter = (activeFilter === imam) ? null : imam;
     applyFilter();
+    // Scroll to top of schedule after filter applied
+    if (activeFilter) {
+      setTimeout(() => {
+        const target = window.innerWidth <= 640
+          ? document.getElementById('mobile-cards')
+          : document.querySelector('.table-wrap');
+        if (target) {
+          const y = target.getBoundingClientRect().top + window.scrollY - 90;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 80);
+    }
   }
 
   function clearFilter() {
