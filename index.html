@@ -342,14 +342,16 @@
     .day-card-mobile.last-ten.today .dcm-dag.today-day { color: #7eb8f7 !important; }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes avatarPulse {
-      0%   { box-shadow: 0 0 0 0 var(--avatar-pulse, rgba(255,255,255,0.4)); }
-      60%  { box-shadow: 0 0 0 12px rgba(0,0,0,0); }
-      100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+    @keyframes cardPulse {
+      0%   { box-shadow: 0 8px 32px rgba(36,100,93,.14), 0 0 0 0 var(--card-pulse, rgba(255,255,255,0.3)); }
+      60%  { box-shadow: 0 8px 32px rgba(36,100,93,.14), 0 0 0 14px rgba(0,0,0,0); }
+      100% { box-shadow: 0 8px 32px rgba(36,100,93,.14), 0 0 0 0 rgba(0,0,0,0); }
     }
-    .today-avatar.pulsing {
-      animation: avatarPulse 3.5s ease-out infinite;
+    .today-card.pulsing {
+      animation: cardPulse 5s ease-out infinite;
+      animation-delay: 1.5s;
     }
+
     @keyframes chipPulse {
       0%   { box-shadow: 0 0 0 0 var(--pulse-color, rgba(0,0,0,0.4)); }
       50%  { box-shadow: 0 0 0 10px rgba(0,0,0,0); }
@@ -697,10 +699,11 @@
       yacquub:     'rgba(125,58,172,0.55)',
       guest:       'rgba(142,158,171,0.55)',
     };
-    const pulseColor = avatarPulseColors[todayData.imam] || 'rgba(255,255,255,0.4)';
-    avatarEl.style.setProperty('--avatar-pulse', pulseColor);
-    avatarEl.classList.add('pulsing');
-    document.getElementById('today-card').style.display = 'block';
+
+    const todayCard = document.getElementById('today-card');
+    todayCard.style.display = 'block';
+    todayCard.style.setProperty('--card-pulse', avatarPulseColors[todayData.imam] || 'rgba(255,255,255,0.3)');
+    todayCard.classList.add('pulsing');
     setTimeout(() => {
       const card = document.getElementById('today-card');
       const targetY = card.getBoundingClientRect().top + window.scrollY - 20;
