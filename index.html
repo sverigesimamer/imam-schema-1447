@@ -192,6 +192,128 @@
     footer { background: var(--primary-dark); text-align: center; padding: 24px 20px; color: rgba(255,255,255,.45); font-size: .8rem; letter-spacing: .05em; }
     footer strong { color: var(--gold); }
 
+    /* LAST 10 NIGHTS */
+    tbody tr.last-ten { background: var(--white); }
+    tbody tr.last-ten.today { background: #0f2d5e !important; border-left-color: #3a7bd5; }
+    tbody tr.last-ten.today td { color: #fff !important; }
+    tbody tr.last-ten.today .td-sidor,
+    tbody tr.last-ten.today .td-datum,
+    tbody tr.last-ten.today .td-veckodag { color: rgba(255,255,255,0.75) !important; }
+    tbody tr.last-ten.today .td-dag { color: #fff !important; }
+    tbody tr.last-ten.today .today-date { color: #7eb8f7 !important; }
+    tbody tr.last-ten.today .today-badge { background: #3a7bd5; }
+    tbody tr.last-ten.today .td-surah .surah-names { color: rgba(255,255,255,0.9) !important; }
+
+    .moon-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #0f2d5e;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    /* Desktop: moon gets its own cell, right-aligned */
+    .td-moon {
+      text-align: center;
+      width: 32px;
+      padding: 12px 8px 12px 0;
+    }
+    .moon-icon svg { display: block; }
+
+    /* Moon tooltip */
+    .moon-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    .moon-tooltip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      right: 0;
+      width: 240px;
+      background: #0f2d5e;
+      color: #fff;
+      font-size: .72rem;
+      line-height: 1.55;
+      padding: 10px 12px;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,.3);
+      z-index: 200;
+      pointer-events: none;
+      font-style: italic;
+    }
+    .moon-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%; right: 6px;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid #0f2d5e;
+    }
+    .moon-wrap:hover .moon-tooltip { display: block; }
+
+    /* Today card moon */
+    .today-moon-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .today-moon-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #0f2d5e;
+      border: 2px solid rgba(255,255,255,0.3);
+      cursor: default;
+      animation: moonPulse 2s ease-in-out infinite;
+    }
+    @keyframes moonPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(58,123,213,0.5); }
+      50% { box-shadow: 0 0 0 6px rgba(58,123,213,0); }
+    }
+    .today-moon-tooltip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 240px;
+      background: #0f2d5e;
+      color: #fff;
+      font-size: .72rem;
+      line-height: 1.55;
+      padding: 10px 12px;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,.3);
+      z-index: 200;
+      pointer-events: none;
+      font-style: italic;
+    }
+    .today-moon-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid #0f2d5e;
+    }
+    .today-moon-wrap:hover .today-moon-tooltip { display: block; }
+
+    /* mobile last-ten */
+    .day-card-mobile.last-ten { background: var(--white); }
+    .day-card-mobile.last-ten.today { background: #0f2d5e !important; border-left-color: #3a7bd5; }
+    .day-card-mobile.last-ten.today .dcm-dag,
+    .day-card-mobile.last-ten.today .dcm-date,
+    .day-card-mobile.last-ten.today .dcm-day-label { color: rgba(255,255,255,0.85) !important; }
+    .day-card-mobile.last-ten.today .imam-chip { opacity: 0.95; }
+    .day-card-mobile.last-ten.today .dcm-surahs { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
+    .day-card-mobile.last-ten.today .dcm-surahs-label { color: rgba(255,255,255,0.5); }
+    .day-card-mobile.last-ten.today .dcm-pages { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); }
+    .day-card-mobile.last-ten.today .today-badge { background: #3a7bd5; }
+    .day-card-mobile.last-ten.today .dcm-dag.today-day { color: #7eb8f7 !important; }
+
     @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 
     @media (max-width: 640px) {
@@ -284,6 +406,7 @@
           <th>Suror</th>
           <th>Imam</th>
           <th>Datum</th>
+          <th></th>
           <th>Dag</th>
         </tr>
       </thead>
@@ -309,10 +432,10 @@
     {day:3,  sidor:'22–31',  imam:'noor',        imamLabel:'Noor',               datum:'2026-02-19', vecka:'Torsdag',  surahs:'Al-Baqarah',                                                                                                        tooltip:'2:142 – 2:202'},
     {day:4,  sidor:'32–41',  imam:'abdul',       imamLabel:'Abdul Qadir',        datum:'2026-02-20', vecka:'Fredag',   surahs:'Al-Baqarah',                                                                                                        tooltip:'2:203 – 2:265'},
     {day:5,  sidor:'42–51',  imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-02-21', vecka:'Lördag',   surahs:'Al-Baqarah, Ali Imran',                                                                                             tooltip:'2:266 – 3:14'},
-    {day:6,  sidor:'51–62',  imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-02-22', vecka:'Söndag',   surahs:'Ali Imran',                                                                                                         tooltip:'3:15 – 3:92'},
+    {day:6,  sidor:'51–62',  imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-02-22', vecka:'Söndag',   surahs:'Ali Imran',                                                                                                         tooltip:'3:15 – 3:92'},
     {day:7,  sidor:'62–72',  imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-02-23', vecka:'Måndag',   surahs:'Ali Imran',                                                                                                         tooltip:'3:93 – 3:170'},
     {day:8,  sidor:'72–81',  imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-24', vecka:'Tisdag',   surahs:'Ali Imran, An-Nisa',                                                                                                tooltip:'3:171 – 4:23'},
-    {day:9,  sidor:'82–92',  imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-02-25', vecka:'Onsdag',   surahs:'An-Nisa',                                                                                                           tooltip:'4:24 – 4:87'},
+    {day:9,  sidor:'82–92',  imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-02-25', vecka:'Onsdag',   surahs:'An-Nisa',                                                                                                           tooltip:'4:24 – 4:87'},
     {day:10, sidor:'92–101', imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-26', vecka:'Torsdag',  surahs:'An-Nisa',                                                                                                           tooltip:'4:88 – 4:147'},
     {day:11, sidor:'102–106',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-02-27', vecka:'Fredag',   surahs:'An-Nisa, Fatir',                                                                                                    tooltip:'4:148 – 35:30'},
     {day:12, sidor:'438–449',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-28', vecka:'Lördag',   surahs:'Fatir, Ya-Sin',                                                                                                     tooltip:'35:31 – 36:82'},
@@ -365,6 +488,9 @@
     const veckaClass = row.vecka === 'Fredag' ? 'fredag' : row.vecka === 'Lördag' ? 'lordag' : row.vecka === 'Söndag' ? 'sondag' : '';
     const badge = isToday ? '<span class="today-badge">Idag</span>' : '';
 
+    const isLastTen = row.day >= 21;
+    if (isLastTen) tr.classList.add('last-ten');
+    const moonIcon = isLastTen ? `<span class="moon-wrap"><span class="moon-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span><span class="moon-tooltip">Profeten ﷺ sade: "Den som står upp i nattbön under Laylatul-Qadr med tro och i hopp om belöning får sina tidigare synder förlåtna." [al-Bukhari och Muslim]</span></span>` : '';
     tr.innerHTML = `
       <td class="td-dag">${row.day}</td>
       <td class="td-sidor">${row.sidor}</td>
@@ -374,6 +500,7 @@
       </td>
       <td><span class="imam-chip imam-${row.imam}"><span class="dot"></span>${row.imamLabel}</span></td>
       <td class="td-datum ${isToday ? 'today-date' : ''}">${row.datum}${badge}</td>
+      <td class="td-moon">${moonIcon}</td>
       <td class="td-veckodag ${veckaClass}">${row.vecka}</td>
     `;
 
@@ -395,7 +522,8 @@
   SCHEDULE.forEach(row => {
     const isToday = row.datum === today;
     const card = document.createElement('div');
-    card.className = 'day-card-mobile' + (isToday ? ' today' : '');
+    const isLastTenM = row.day >= 21;
+    card.className = 'day-card-mobile' + (isToday ? ' today' : '') + (isLastTenM ? ' last-ten' : '');
     if (isToday) card.id = 'today-row-mobile';
     const veckaClass = row.vecka === 'Fredag' ? 'fredag' : row.vecka === 'Lördag' ? 'lordag' : row.vecka === 'Söndag' ? 'sondag' : '';
     const badge = isToday ? '<span class="today-badge">Idag</span>' : '';
@@ -405,7 +533,7 @@
         <div class="dcm-body">
           <div class="dcm-imam"><span class="imam-chip imam-${row.imam}"><span class="dot"></span>${row.imamLabel}</span></div>
           <div class="dcm-meta">
-            <span class="dcm-date">${row.datum}${badge}</span>
+            <span class="dcm-date">${row.datum}${isLastTenM ? `<span class='moon-wrap' style='margin-left:5px;'><span class='moon-icon'><svg width='11' height='11' viewBox='0 0 24 24' fill='white'><path d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'/></svg></span><span class='moon-tooltip' style='right:auto;left:0;'>Profeten ﷺ sade: "Den som står upp i nattbön under Laylatul-Qadr med tro och i hopp om belöning får sina tidigare synder förlåtna." [al-Bukhari och Muslim]</span></span>` : ''}${badge}</span>
             <span class="dcm-day-label ${veckaClass}">${row.vecka}</span>
             <span class="dcm-pages">s. ${row.sidor}</span>
           </div>
@@ -441,7 +569,17 @@
   if (todayData) {
     const d = new Date(today);
     document.getElementById('today-imam-name').textContent = todayData.imamLabel;
-    document.getElementById('today-date-label').textContent = DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()];
+    const dateLabel = DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()];
+    if (todayData.day >= 21) {
+      const dateEl = document.getElementById('today-date-label');
+      dateEl.textContent = dateLabel;
+      const moonWrap = document.createElement('span');
+      moonWrap.className = 'today-moon-wrap';
+      moonWrap.innerHTML = `<span class="today-moon-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span><span class="today-moon-tooltip">Profeten ﷺ sade: "Den som står upp i nattbön under Laylatul-Qadr med tro och i hopp om belöning får sina tidigare synder förlåtna." [al-Bukhari och Muslim]</span>`;
+      dateEl.parentNode.insertBefore(moonWrap, dateEl.nextSibling);
+    } else {
+      document.getElementById('today-date-label').textContent = dateLabel;
+    }
     document.getElementById('today-pages').textContent = 'Sidor ' + todayData.sidor;
     document.getElementById('today-surahs').textContent = todayData.surahs + '  (' + todayData.tooltip + ')';
     document.getElementById('today-avatar').textContent = todayData.imamLabel.charAt(0);
