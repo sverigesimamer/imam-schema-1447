@@ -341,6 +341,14 @@
     .day-card-mobile.last-ten.today .dcm-dag.today-day { color: #7eb8f7 !important; }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes chipPulse {
+      0%   { box-shadow: 0 0 0 0 var(--pulse-color, rgba(0,0,0,0.4)); }
+      50%  { box-shadow: 0 0 0 10px rgba(0,0,0,0); }
+      100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+    }
+    .filter-chip.active {
+      animation: chipPulse 2s ease-out infinite;
+    }
 
     /* FILTER */
     .filter-wrap { margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
@@ -727,8 +735,23 @@
     document.body.style.overflowY = 'hidden';
 
     // Update chip states
+    const imamColors = {
+      abdurrahman: 'rgba(232,99,10,0.5)',
+      saed:        'rgba(212,168,0,0.5)',
+      noor:        'rgba(41,128,185,0.5)',
+      abdul:       'rgba(44,44,44,0.5)',
+      mohammed:    'rgba(33,145,80,0.5)',
+      yacquub:     'rgba(125,58,172,0.5)',
+      guest:       'rgba(142,158,171,0.5)',
+    };
     document.querySelectorAll('.filter-chip').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.imam === activeFilter);
+      const isActive = btn.dataset.imam === activeFilter;
+      btn.classList.toggle('active', isActive);
+      if (isActive) {
+        btn.style.setProperty('--pulse-color', imamColors[btn.dataset.imam] || 'rgba(0,0,0,0.3)');
+      } else {
+        btn.style.removeProperty('--pulse-color');
+      }
     });
     document.getElementById('filter-clear').style.display = activeFilter ? 'inline-flex' : 'none';
 
