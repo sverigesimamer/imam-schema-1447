@@ -370,15 +370,7 @@
     }
     .filter-chip.active .filter-dot { border-color: rgba(255,255,255,.4) !important; }
     .filter-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .filter-clear {
-      display: inline-flex; align-items: center; gap: 5px;
-      background: none; border: 1.5px solid var(--muted);
-      border-radius: 30px; padding: 4px 14px;
-      font-size: .75rem; font-weight: 500; font-family: inherit;
-      color: var(--muted); cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .filter-clear:hover { border-color: var(--primary); color: var(--primary); }
+
 
     /* hidden rows */
     tbody tr.filtered-out { display: none; }
@@ -467,7 +459,6 @@
       <button class="filter-chip" data-imam="yacquub" onclick="toggleFilter('yacquub')"><span class="filter-dot" style="background:var(--yacquub)"></span>Yacquub</button>
       <button class="filter-chip" data-imam="guest" onclick="toggleFilter('guest')"><span class="filter-dot" style="background:var(--guest);border:1px solid #bbb"></span>Gäst</button>
     </div>
-    <button class="filter-clear" id="filter-clear" onclick="clearFilter()" style="display:none">✕ Ta bort filter</button>
   </div>
 
   <!-- DESKTOP TABLE -->
@@ -724,11 +715,6 @@
     }
   }
 
-  function clearFilter() {
-    activeFilter = null;
-    applyFilter();
-  }
-
   function applyFilter() {
     // Lock body width before any DOM changes to prevent scrollbar-caused layout shift
     document.body.style.width = document.body.offsetWidth + 'px';
@@ -753,7 +739,6 @@
         btn.style.removeProperty('--pulse-color');
       }
     });
-    document.getElementById('filter-clear').style.display = activeFilter ? 'inline-flex' : 'none';
 
     // Hide non-matching instantly
     document.querySelectorAll('#table-body tr').forEach(tr => {
