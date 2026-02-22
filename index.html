@@ -157,6 +157,7 @@
     .day-card-mobile { background: var(--white); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 2px 12px rgba(36,100,93,.08); border-left: 4px solid transparent; }
     .day-card-mobile.today { background: var(--today-bg); border-left-color: var(--today-green); }
     .dcm-top { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+    .dcm-audio-right { display: flex; align-items: center; margin-left: auto; flex-shrink: 0; }
     .dcm-dag { font-weight: 700; font-size: 1.3rem; color: var(--primary-dark); min-width: 32px; text-align: center; flex-shrink: 0; }
     .dcm-dag.today-day { color: #1d7a4e; }
     .dcm-body { flex: 1; min-width: 0; }
@@ -226,6 +227,22 @@
       vertical-align: middle;
       flex-shrink: 0;
     }
+    /* AUDIO PLAY BUTTON */
+    .play-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--primary); border: none; cursor: pointer;
+      color: #fff; flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(36,100,93,.3);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .play-btn:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(36,100,93,.4); }
+    .play-btn.playing { background: #c0392b; }
+    .play-btn svg { display: block; }
+
+    .td-audio { text-align: center; width: 36px; padding: 12px 4px 12px 8px; }
+    .dcm-audio { display: inline-flex; align-items: center; margin-left: 5px; }
+
     /* Desktop: moon gets its own cell, right-aligned */
     .td-moon {
       text-align: center;
@@ -489,6 +506,7 @@
           <th>Imam</th>
           <th>Datum</th>
           <th></th>
+          <th></th>
           <th>Dag</th>
         </tr>
       </thead>
@@ -601,6 +619,7 @@
       </td>
       <td><span class="imam-chip imam-${row.imam}"><span class="dot"></span>${row.imamLabel}</span></td>
       <td class="td-datum ${isToday ? 'today-date' : ''}">${row.datum}${badge}</td>
+      <td class="td-audio" id="audio-desktop-${row.datum}"></td>
       <td class="td-moon">${moonIcon}</td>
       <td class="td-veckodag ${veckaClass}">${row.vecka}</td>
     `;
@@ -628,17 +647,20 @@
     if (isToday) card.id = 'today-row-mobile';
     const veckaClass = row.vecka === 'Fredag' ? 'fredag' : row.vecka === 'Lördag' ? 'lordag' : row.vecka === 'Söndag' ? 'sondag' : '';
     const badge = isToday ? '<span class="today-badge">Idag</span>' : '';
+    const moonSpan = isLastTenM ? `<span class='moon-wrap' style='margin-left:5px;'><span class='moon-icon'><svg width='11' height='11' viewBox='0 0 24 24' fill='white'><path d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'/></svg></span><span class='moon-tooltip' style='right:auto;left:0;'>Profeten ﷺ sade: "Den som står upp i nattbön under Laylatul-Qadr med tro och i hopp om belöning får sina tidigare synder förlåtna." [al-Bukhari och Muslim]</span></span>` : '';
     card.innerHTML = `
       <div class="dcm-top">
         <div class="dcm-dag ${isToday ? 'today-day' : ''}">${row.day}</div>
         <div class="dcm-body">
           <div class="dcm-imam"><span class="imam-chip imam-${row.imam}"><span class="dot"></span>${row.imamLabel}</span></div>
           <div class="dcm-meta">
-            <span class="dcm-date">${row.datum}${isLastTenM ? `<span class='moon-wrap' style='margin-left:5px;'><span class='moon-icon'><svg width='11' height='11' viewBox='0 0 24 24' fill='white'><path d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'/></svg></span><span class='moon-tooltip' style='right:auto;left:0;'>Profeten ﷺ sade: "Den som står upp i nattbön under Laylatul-Qadr med tro och i hopp om belöning får sina tidigare synder förlåtna." [al-Bukhari och Muslim]</span></span>` : ''}${badge}</span>
+            <span class="dcm-date">${row.datum}${badge}</span>
+            ${moonSpan}
             <span class="dcm-day-label ${veckaClass}">${row.vecka}</span>
             <span class="dcm-pages">s. ${row.sidor}</span>
           </div>
         </div>
+        <div class="dcm-audio-right" id="audio-mobile-${row.datum}"></div>
       </div>
       <div class="dcm-surahs">
         <span class="dcm-surahs-label">Suror — tryck för detaljer</span>
@@ -732,6 +754,87 @@
       requestAnimationFrame(step);
     }, 3000);
   }
+
+  // ── AUDIO ──
+  const audioState = {}; // datum -> Audio object
+
+  const PLAY_ICON = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>`;
+  const PAUSE_ICON = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="3" width="4" height="18"/><rect x="14" y="3" width="4" height="18"/></svg>`;
+
+  function createPlayBtn(datum) {
+    const btn = document.createElement('button');
+    btn.className = 'play-btn';
+    btn.title = 'Spela upp recitation';
+    btn.innerHTML = PLAY_ICON;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAudio(datum, btn);
+    });
+    return btn;
+  }
+
+  function toggleAudio(datum, btn) {
+    // Pause all others
+    Object.keys(audioState).forEach(d => {
+      if (d !== datum && audioState[d]) {
+        audioState[d].pause();
+        // Reset all buttons for this datum
+        document.querySelectorAll(`.play-btn[data-datum="${d}"]`).forEach(b => {
+          b.innerHTML = PLAY_ICON;
+          b.classList.remove('playing');
+        });
+      }
+    });
+
+    if (!audioState[datum]) {
+      audioState[datum] = new Audio(`/${datum}.mp3`);
+      audioState[datum].addEventListener('ended', () => {
+        document.querySelectorAll(`.play-btn[data-datum="${datum}"]`).forEach(b => {
+          b.innerHTML = PLAY_ICON;
+          b.classList.remove('playing');
+        });
+      });
+    }
+
+    const audio = audioState[datum];
+    if (audio.paused) {
+      audio.play();
+      document.querySelectorAll(`.play-btn[data-datum="${datum}"]`).forEach(b => {
+        b.innerHTML = PAUSE_ICON;
+        b.classList.add('playing');
+      });
+    } else {
+      audio.pause();
+      document.querySelectorAll(`.play-btn[data-datum="${datum}"]`).forEach(b => {
+        b.innerHTML = PLAY_ICON;
+        b.classList.remove('playing');
+      });
+    }
+  }
+
+  // Check which audio files exist using Audio element (avoids CORS issues on GitHub Pages)
+  function injectPlayButtons(datum) {
+    const desktopCell = document.getElementById(`audio-desktop-${datum}`);
+    if (desktopCell) {
+      const btn = createPlayBtn(datum);
+      btn.setAttribute('data-datum', datum);
+      desktopCell.appendChild(btn);
+    }
+    const mobileCell = document.getElementById(`audio-mobile-${datum}`);
+    if (mobileCell) {
+      const btn = createPlayBtn(datum);
+      btn.setAttribute('data-datum', datum);
+      mobileCell.appendChild(btn);
+    }
+  }
+
+  SCHEDULE.forEach(row => {
+    const audio = new Audio();
+    audio.addEventListener('canplaythrough', () => injectPlayButtons(row.datum), { once: true });
+    audio.addEventListener('loadedmetadata', () => injectPlayButtons(row.datum), { once: true });
+    audio.preload = 'metadata';
+    audio.src = `/${row.datum}.mp3`;
+  });
 
   // ── FILTER ──
   let activeFilter = null;
