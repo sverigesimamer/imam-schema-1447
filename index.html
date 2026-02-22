@@ -25,6 +25,7 @@
       --mohammed: #219150;
       --yacquub: #7d3aac;
       --guest: #8e9eab;
+      --ibrahim: #1a6b8a;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -110,6 +111,7 @@
     .imam-mohammed { background: var(--mohammed); }
     .imam-yacquub { background: var(--yacquub); }
     .imam-guest { background: var(--guest); color: #1a1a1a !important; }
+    .imam-ibrahim { background: var(--ibrahim); }
     .imam-guest .dot { background: rgba(0,0,0,.15) !important; }
     .today-badge { display: inline-block; background: var(--today-green); color: #fff; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 2px 6px; border-radius: 8px; margin-left: 5px; vertical-align: middle; }
 
@@ -344,12 +346,13 @@
     @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes cardPulse {
       0%   { box-shadow: 0 8px 32px rgba(36,100,93,.14), 0 0 0 0 var(--card-pulse, rgba(255,255,255,0.3)); }
-      60%  { box-shadow: 0 8px 32px rgba(36,100,93,.14), 0 0 0 14px rgba(0,0,0,0); }
+      40%  { box-shadow: 0 8px 32px rgba(36,100,93,.14), 0 0 0 14px rgba(0,0,0,0); }
+      66%  { box-shadow: 0 8px 32px rgba(36,100,93,.14), 0 0 0 0 rgba(0,0,0,0); }
       100% { box-shadow: 0 8px 32px rgba(36,100,93,.14), 0 0 0 0 rgba(0,0,0,0); }
     }
     .today-card.pulsing {
-      animation: cardPulse 5s ease-out infinite;
-      animation-delay: 1.5s;
+      animation: cardPulse 3s ease-out infinite;
+      animation-delay: 0.5s;
     }
 
     @keyframes chipPulse {
@@ -468,6 +471,7 @@
       <button class="filter-chip" data-imam="abdul" onclick="toggleFilter('abdul')"><span class="filter-dot" style="background:var(--abdul)"></span>Abdul Qadir</button>
       <button class="filter-chip" data-imam="mohammed" onclick="toggleFilter('mohammed')"><span class="filter-dot" style="background:var(--mohammed)"></span>Mohammed Haji</button>
       <button class="filter-chip" data-imam="yacquub" onclick="toggleFilter('yacquub')"><span class="filter-dot" style="background:var(--yacquub)"></span>Yacquub</button>
+      <button class="filter-chip" data-imam="ibrahim" onclick="toggleFilter('ibrahim')"><span class="filter-dot" style="background:var(--ibrahim)"></span>Ibrahim Noor</button>
       <button class="filter-chip" data-imam="guest" onclick="toggleFilter('guest')"><span class="filter-dot" style="background:var(--guest);border:1px solid #bbb"></span>Gäst</button>
     </div>
   </div>
@@ -516,7 +520,7 @@
     {day:6,  sidor:'51–62',  imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-02-22', vecka:'Söndag',   surahs:'Ali Imran',                                                                                                         tooltip:'3:15 – 3:92'},
     {day:7,  sidor:'62–72',  imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-02-23', vecka:'Måndag',   surahs:'Ali Imran',                                                                                                         tooltip:'3:93 – 3:170'},
     {day:8,  sidor:'72–81',  imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-24', vecka:'Tisdag',   surahs:'Ali Imran, An-Nisa',                                                                                                tooltip:'3:171 – 4:23'},
-    {day:9,  sidor:'82–92',  imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-02-25', vecka:'Onsdag',   surahs:'An-Nisa',                                                                                                           tooltip:'4:24 – 4:87'},
+    {day:9,  sidor:'82–92',  imam:'ibrahim',     imamLabel:'Ibrahim Noor',        datum:'2026-02-25', vecka:'Onsdag',   surahs:'An-Nisa',                                                                                                           tooltip:'4:24 – 4:87'},
     {day:10, sidor:'92–101', imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-26', vecka:'Torsdag',  surahs:'An-Nisa',                                                                                                           tooltip:'4:88 – 4:147'},
     {day:11, sidor:'102–106',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-02-27', vecka:'Fredag',   surahs:'An-Nisa, Fatir',                                                                                                    tooltip:'4:148 – 35:30'},
     {day:12, sidor:'438–449',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-28', vecka:'Lördag',   surahs:'Fatir, Ya-Sin',                                                                                                     tooltip:'35:31 – 36:82'},
@@ -697,6 +701,7 @@
       abdul:       'rgba(100,100,100,0.55)',
       mohammed:    'rgba(33,145,80,0.55)',
       yacquub:     'rgba(125,58,172,0.55)',
+      ibrahim:     'rgba(26,107,138,0.55)',
       guest:       'rgba(142,158,171,0.55)',
     };
 
@@ -758,6 +763,7 @@
       abdul:       'rgba(44,44,44,0.5)',
       mohammed:    'rgba(33,145,80,0.5)',
       yacquub:     'rgba(125,58,172,0.5)',
+      ibrahim:     'rgba(26,107,138,0.5)',
       guest:       'rgba(142,158,171,0.5)',
     };
     document.querySelectorAll('.filter-chip').forEach(btn => {
