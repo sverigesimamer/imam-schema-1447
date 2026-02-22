@@ -702,7 +702,10 @@
 
   const DAYS   = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
   const MONTHS = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
-  const today  = new Date().toISOString().slice(0, 10);
+  // Use local date (not UTC) to avoid timezone offset issues
+  const _now = new Date();
+  const _p2 = n => String(n).padStart(2,'0');
+  const today = _now.getFullYear() + '-' + _p2(_now.getMonth()+1) + '-' + _p2(_now.getDate());
   const isAfterRamadan = today > '2026-03-18';
 
   function scrollToToday() {
@@ -1114,7 +1117,11 @@
   function padZ(n) { return String(n).padStart(2,'0'); }
 
   function getDateKey(d) {
-    return d.getFullYear() + '-' + padZ(d.getMonth()+1) + '-' + padZ(d.getDate());
+    // Use local time, not UTC, to avoid midnight UTC offset issues
+    const y = d.getFullYear();
+    const m = padZ(d.getMonth() + 1);
+    const day = padZ(d.getDate());
+    return y + '-' + m + '-' + day;
   }
 
   function startIshaCountdown() {
