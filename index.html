@@ -845,11 +845,9 @@
   }
 
   SCHEDULE.forEach(row => {
-    const audio = new Audio();
-    audio.addEventListener('canplaythrough', () => injectPlayButtons(row.datum), { once: true });
-    audio.addEventListener('loadedmetadata', () => injectPlayButtons(row.datum), { once: true });
-    audio.preload = 'metadata';
-    audio.src = `/${row.datum}.mp3`;
+    fetch(`/${row.datum}.mp3`, { method: 'GET', headers: { 'Range': 'bytes=0-0' } })
+      .then(res => { if (res.ok || res.status === 206) injectPlayButtons(row.datum); })
+      .catch(() => {});
   });
 
   // ── FILTER ──
