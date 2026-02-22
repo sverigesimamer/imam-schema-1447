@@ -24,7 +24,8 @@
       --abdul: #2c2c2c;
       --mohammed: #219150;
       --yacquub: #7d3aac;
-      --guest: #8e9eab;
+      --abdelsalam: #7b3f00;
+      --hatem: #2d6a4f;
       --ibrahim: #1a6b8a;
     }
 
@@ -110,9 +111,9 @@
     .imam-abdul { background: var(--abdul); }
     .imam-mohammed { background: var(--mohammed); }
     .imam-yacquub { background: var(--yacquub); }
-    .imam-guest { background: var(--guest); color: #1a1a1a !important; }
+    .imam-abdelsalam { background: var(--abdelsalam); }
+    .imam-hatem { background: var(--hatem); }
     .imam-ibrahim { background: var(--ibrahim); }
-    .imam-guest .dot { background: rgba(0,0,0,.15) !important; }
     .today-badge { display: inline-block; background: var(--today-green); color: #fff; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 2px 6px; border-radius: 8px; margin-left: 5px; vertical-align: middle; }
 
     /* TOOLTIP */
@@ -472,7 +473,8 @@
       <button class="filter-chip" data-imam="mohammed" onclick="toggleFilter('mohammed')"><span class="filter-dot" style="background:var(--mohammed)"></span>Mohammed Haji</button>
       <button class="filter-chip" data-imam="yacquub" onclick="toggleFilter('yacquub')"><span class="filter-dot" style="background:var(--yacquub)"></span>Yacquub</button>
       <button class="filter-chip" data-imam="ibrahim" onclick="toggleFilter('ibrahim')"><span class="filter-dot" style="background:var(--ibrahim)"></span>Ibrahim Noor</button>
-      <button class="filter-chip" data-imam="guest" onclick="toggleFilter('guest')"><span class="filter-dot" style="background:var(--guest);border:1px solid #bbb"></span>Gäst</button>
+      <button class="filter-chip" data-imam="abdelsalam" onclick="toggleFilter('abdelsalam')"><span class="filter-dot" style="background:var(--abdelsalam)"></span>Abdelsalam Nour</button>
+      <button class="filter-chip" data-imam="hatem" onclick="toggleFilter('hatem')"><span class="filter-dot" style="background:var(--hatem)"></span>Hatem</button>
     </div>
   </div>
 
@@ -524,7 +526,7 @@
     {day:10, sidor:'92–101', imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-26', vecka:'Torsdag',  surahs:'An-Nisa',                                                                                                           tooltip:'4:88 – 4:147'},
     {day:11, sidor:'102–106',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-02-27', vecka:'Fredag',   surahs:'An-Nisa, Fatir',                                                                                                    tooltip:'4:148 – 35:30'},
     {day:12, sidor:'438–449',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-28', vecka:'Lördag',   surahs:'Fatir, Ya-Sin',                                                                                                     tooltip:'35:31 – 36:82'},
-    {day:13, sidor:'449–458',imam:'guest',       imamLabel:'Gäst',               datum:'2026-03-01', vecka:'Söndag',   surahs:'Ya-Sin, As-Saffat, Sad',                                                                                            tooltip:'36:83 – 38:88'},
+    {day:13, sidor:'449–458',imam:'abdelsalam',  imamLabel:'Abdelsalam Nour',    datum:'2026-03-01', vecka:'Söndag',   surahs:'Ya-Sin, As-Saffat, Sad',                                                                                            tooltip:'36:83 – 38:88'},
     {day:14, sidor:'458–467',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-03-02', vecka:'Måndag',   surahs:'Az-Zumar',                                                                                                          tooltip:'39:1 – 39:75'},
     {day:15, sidor:'467–476',imam:'noor',        imamLabel:'Noor',               datum:'2026-03-03', vecka:'Tisdag',   surahs:'Ghafir',                                                                                                            tooltip:'40:1 – 40:85'},
     {day:16, sidor:'476–486',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-03-04', vecka:'Onsdag',   surahs:'Fussilat, Ash-Shura',                                                                                               tooltip:'41:1 – 42:26'},
@@ -536,7 +538,7 @@
     {day:22, sidor:'531–539',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-03-10', vecka:'Tisdag',   surahs:'Ar-Rahman, Al-Waqiah, Al-Hadid',                                                                                    tooltip:'55:1 – 57:15'},
     {day:23, sidor:'539–548',imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-03-11', vecka:'Onsdag',   surahs:'Al-Hadid, Al-Mujadilah, Al-Hashr',                                                                                  tooltip:'57:16 – 59:24'},
     {day:24, sidor:'549–557',imam:'abdul',       imamLabel:'Abdul Qadir',        datum:'2026-03-12', vecka:'Torsdag',  surahs:'Al-Mumtahanah, As-Saf, Al-Jumuah, Al-Munafiqun, At-Taghabun',                                                       tooltip:'60:1 – 64:18'},
-    {day:25, sidor:'558–566',imam:'guest',       imamLabel:'Gäst',               datum:'2026-03-13', vecka:'Fredag',   surahs:'At-Talaq, At-Tahrim, Al-Mulk, Al-Qalam',                                                                            tooltip:'65:1 – 68:52'},
+    {day:25, sidor:'558–566',imam:'hatem',       imamLabel:'Hatem',              datum:'2026-03-13', vecka:'Fredag',   surahs:'At-Talaq, At-Tahrim, Al-Mulk, Al-Qalam',                                                                            tooltip:'65:1 – 68:52'},
     {day:26, sidor:'566–574',imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-03-14', vecka:'Lördag',   surahs:'Al-Haqqah, Al-Maarij, Nuh, Al-Jinn, Al-Muzzammil',                                                                  tooltip:'69:1 – 73:20'},
     {day:27, sidor:'575–583',imam:'noor',        imamLabel:'Noor',               datum:'2026-03-15', vecka:'Söndag',   surahs:'Al-Muddaththir, Al-Qiyamah, Al-Insan, Al-Mursalat, An-Naba',                                                         tooltip:'74:1 – 78:40'},
     {day:28, sidor:'583–591',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-03-16', vecka:'Måndag',   surahs:'An-Naziat, Abasa, At-Takwir, Al-Infitar, Al-Mutaffifin, Al-Inshiqaq, Al-Buruj, At-Tariq, Al-Ala',                    tooltip:'79:1 – 87:19'},
@@ -702,7 +704,8 @@
       mohammed:    'rgba(33,145,80,0.55)',
       yacquub:     'rgba(125,58,172,0.55)',
       ibrahim:     'rgba(26,107,138,0.55)',
-      guest:       'rgba(142,158,171,0.55)',
+      abdelsalam:  'rgba(123,63,0,0.55)',
+      hatem:       'rgba(45,106,79,0.55)',
     };
 
     const todayCard = document.getElementById('today-card');
@@ -764,7 +767,8 @@
       mohammed:    'rgba(33,145,80,0.5)',
       yacquub:     'rgba(125,58,172,0.5)',
       ibrahim:     'rgba(26,107,138,0.5)',
-      guest:       'rgba(142,158,171,0.5)',
+      abdelsalam:  'rgba(123,63,0,0.5)',
+      hatem:       'rgba(45,106,79,0.5)',
     };
     document.querySelectorAll('.filter-chip').forEach(btn => {
       const isActive = btn.dataset.imam === activeFilter;
