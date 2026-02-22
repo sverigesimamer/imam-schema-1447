@@ -845,8 +845,8 @@
   }
 
   SCHEDULE.forEach(row => {
-    fetch(`/${row.datum}.mp3`, { method: 'GET', headers: { 'Range': 'bytes=0-0' } })
-      .then(res => { if (res.ok || res.status === 206) injectPlayButtons(row.datum); })
+    fetch(`/${row.datum}.mp3`)
+      .then(res => { if (res.ok) injectPlayButtons(row.datum); })
       .catch(() => {});
   });
 
