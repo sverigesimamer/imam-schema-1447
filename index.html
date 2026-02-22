@@ -762,19 +762,19 @@
   const PLAY_ICON = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>`;
   const PAUSE_ICON = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="3" width="4" height="18"/><rect x="14" y="3" width="4" height="18"/></svg>`;
 
-  function createPlayBtn(datum) {
+  function createPlayBtn(datum, url) {
     const btn = document.createElement('button');
     btn.className = 'play-btn';
     btn.title = 'Spela upp recitation';
     btn.innerHTML = PLAY_ICON;
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      toggleAudio(datum, btn);
+      toggleAudio(datum, btn, url);
     });
     return btn;
   }
 
-  function toggleAudio(datum, btn) {
+  function toggleAudio(datum, btn, url) {
     // Pause all others
     Object.keys(audioState).forEach(d => {
       if (d !== datum && audioState[d]) {
@@ -790,7 +790,7 @@
     if (!audioState[datum]) {
       const a = new Audio();
       a.preload = 'none';        // Don't preload — stream on demand
-      a.src = `/${datum}.mp3`;
+      a.src = url || `${basePath}/${datum}.mp3`;
       a.addEventListener('ended', () => {
         document.querySelectorAll(`.play-btn[data-datum="${datum}"]`).forEach(b => {
           b.innerHTML = PLAY_ICON;
@@ -829,24 +829,28 @@
   }
 
   // Check which audio files exist using Audio element (avoids CORS issues on GitHub Pages)
-  function injectPlayButtons(datum) {
+  function injectPlayButtons(datum, url) {
     const desktopCell = document.getElementById(`audio-desktop-${datum}`);
-    if (desktopCell) {
-      const btn = createPlayBtn(datum);
+    if (desktopCell && !desktopCell.querySelector('.play-btn')) {
+      const btn = createPlayBtn(datum, url);
       btn.setAttribute('data-datum', datum);
       desktopCell.appendChild(btn);
     }
     const mobileCell = document.getElementById(`audio-mobile-${datum}`);
-    if (mobileCell) {
-      const btn = createPlayBtn(datum);
+    if (mobileCell && !mobileCell.querySelector('.play-btn')) {
+      const btn = createPlayBtn(datum, url);
       btn.setAttribute('data-datum', datum);
       mobileCell.appendChild(btn);
     }
   }
 
+  // Detect base path for GitHub Pages (e.g. /imam-schema-1447/)
+  const basePath = window.location.pathname.replace(/\/[^\/]*$/, '/').replace(/\/$/, '') || '';
+
   SCHEDULE.forEach(row => {
-    fetch(`/${row.datum}.mp3`)
-      .then(res => { if (res.ok) injectPlayButtons(row.datum); })
+    const url = `${basePath}/${row.datum}.mp3`;
+    fetch(url)
+      .then(res => { if (res.ok) injectPlayButtons(row.datum, url); })
       .catch(() => {});
   });
 
