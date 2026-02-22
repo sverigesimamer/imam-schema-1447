@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tarawih Schema — Ramadan 2026</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link href="https://fonts.cdnfonts.com/css/digital-7-mono" rel="stylesheet">
   <style>
     :root {
       --primary: #24645d;
@@ -68,6 +69,41 @@
     .today-surahs-value { font-size: .82rem; color: var(--text); font-weight: 500; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .today-hadith { display: flex; align-items: flex-start; gap: 6px; margin-top: 6px; font-size: .75rem; color: var(--muted); font-style: italic; line-height: 1.5; }
     .today-hadith .moon-small { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #0f2d5e; flex-shrink: 0; margin-top: 1px; }
+    /* ISHA COUNTDOWN */
+    .isha-countdown {
+      background: #fff;
+      border-top: 1px solid rgba(36,100,93,.1);
+      padding: 12px 20px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px;
+    }
+    .isha-label {
+      font-size: .58rem; text-transform: uppercase; letter-spacing: .14em;
+      color: #9ca3af; display: block; margin-bottom: 3px;
+    }
+    .isha-timer {
+      font-family: 'Digital-7 Mono', 'Digital-7', monospace;
+      font-size: 1.7rem; font-weight: 400; color: #1a4a44;
+      letter-spacing: .06em; line-height: 1.1;
+    }
+    .isha-timer.done {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; font-weight: 600; letter-spacing: .01em;
+      color: #1a6b8a;
+    }
+    .isha-time-info {
+      font-size: .68rem; color: #9ca3af; margin-top: 2px;
+    }
+    .isha-time-right {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+    }
+    .isha-time-right-label {
+      font-size: .58rem; text-transform: uppercase; letter-spacing: .1em; color: #9ca3af;
+    }
+    .isha-time-right-val {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem; color: #374151; font-weight: 500;
+    }
     .today-scroll-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--primary); color: #fff; font-size: .75rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; padding: 8px 16px; border-radius: 30px; border: none; cursor: pointer; font-family: inherit; white-space: nowrap; align-self: flex-start; margin-top: 4px; box-shadow: 0 4px 14px rgba(0,0,0,.18); transition: box-shadow 0.2s ease, transform 0.2s ease; }
     .today-scroll-btn:hover { box-shadow: 0 6px 20px rgba(0,0,0,.26); transform: translateY(-1px); }
 
@@ -253,6 +289,26 @@
       background: rgba(36,100,93,.04);
       border-top: 1px solid rgba(36,100,93,.07);
     }
+
+    /* EID CARD */
+    .eid-card {
+      display: none;
+      background: linear-gradient(135deg, #0f2d5e 0%, #1a4a44 60%, #24645d 100%);
+      border-radius: 18px;
+      padding: 52px 32px 44px;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(36,100,93,.2);
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .eid-stars { font-size: 1.3rem; letter-spacing: .25em; color: var(--gold); margin-bottom: 16px; }
+    .eid-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.8rem; font-weight: 600; color: #fff;
+      line-height: 1.15; margin-bottom: 12px;
+    }
+    .eid-subtitle { font-size: .95rem; color: rgba(255,255,255,.6); font-style: italic; letter-spacing: .04em; }
 
     footer { background: var(--primary-dark); text-align: center; padding: 24px 20px; color: rgba(255,255,255,.45); font-size: .8rem; letter-spacing: .05em; }
     footer strong { color: var(--gold); }
@@ -508,6 +564,17 @@
 <main>
 
   <!-- TODAY CARD -->
+  <div class="eid-card" id="eid-card">
+    <div class="eid-stars">🌙 ✦ 🌙</div>
+    <div class="eid-title">Eid Mubarak!</div>
+    <div class="eid-divider">
+      <div class="eid-divider-line"></div>
+      <div class="eid-divider-dot"></div>
+      <div class="eid-divider-line"></div>
+    </div>
+    <div class="eid-subtitle">Taqabbal Allah minna wa minkum</div>
+  </div>
+
   <div class="today-card" id="today-card">
     <div class="today-card-top">
       <div class="today-avatar" id="today-avatar">?</div>
@@ -529,6 +596,17 @@
         </div>
       </div>
       <button class="today-scroll-btn" onclick="scrollToToday()">↓ Se i schemat</button>
+    </div>
+    <div class="isha-countdown" id="isha-countdown" style="display:none">
+      <div>
+        <span class="isha-label" id="isha-label">Tid kvar till Isha</span>
+        <div class="isha-timer" id="isha-timer">--:--:--</div>
+        <div class="isha-time-info" id="isha-time-info"></div>
+      </div>
+      <div class="isha-time-right">
+        <span class="isha-time-right-label">Isha</span>
+        <span class="isha-time-right-val" id="isha-time-right-val">--:--</span>
+      </div>
     </div>
   </div>
 
@@ -625,6 +703,7 @@
   const DAYS   = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
   const MONTHS = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
   const today  = new Date().toISOString().slice(0, 10);
+  const isAfterRamadan = today > '2026-03-18';
 
   function scrollToToday() {
     // On mobile the table is hidden, so use the mobile card; otherwise use the desktop row
@@ -777,6 +856,10 @@
   });
 
   // Populate today card
+  if (isAfterRamadan) {
+    document.getElementById('eid-card').style.display = 'block';
+  }
+
   const todayData = SCHEDULE.find(r => r.datum === today);
   if (todayData) {
     const d = new Date(today);
@@ -821,6 +904,7 @@
 
     const todayCard = document.getElementById('today-card');
     todayCard.style.display = 'block';
+    startIshaCountdown();
     todayCard.style.setProperty('--card-pulse', avatarPulseColors[todayData.imam] || 'rgba(255,255,255,0.3)');
     todayCard.classList.add('pulsing');
     setTimeout(() => {
@@ -847,7 +931,7 @@
   // ── AUDIO ──
   const audioState = {}; // datum -> Audio object
 
-  const PLAY_ICON = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>`;
+  const PLAY_ICON = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="7,3 21,12 7,21" transform="translate(1,0)"/></svg>`;
   const PAUSE_ICON = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="3" width="4" height="18"/><rect x="14" y="3" width="4" height="18"/></svg>`;
 
   function createPlayBtn(datum, url) {
@@ -1012,6 +1096,79 @@
       .then(res => { if (res.ok) injectPlayButtons(row.datum, url); })
       .catch(() => {});
   });
+
+  // ── ISHA COUNTDOWN ──
+  const ISHA_TIMES = {
+    '2026-02-17':'18:56','2026-02-18':'18:58','2026-02-19':'19:00',
+    '2026-02-20':'19:03','2026-02-21':'19:05','2026-02-22':'19:07',
+    '2026-02-23':'19:10','2026-02-24':'19:12','2026-02-25':'19:14',
+    '2026-02-26':'19:17','2026-02-27':'19:19','2026-02-28':'19:22',
+    '2026-03-01':'19:24','2026-03-02':'19:27','2026-03-03':'19:29',
+    '2026-03-04':'19:32','2026-03-05':'19:34','2026-03-06':'19:37',
+    '2026-03-07':'19:39','2026-03-08':'19:42','2026-03-09':'19:45',
+    '2026-03-10':'19:47','2026-03-11':'19:50','2026-03-12':'19:53',
+    '2026-03-13':'19:55','2026-03-14':'19:58','2026-03-15':'20:01',
+    '2026-03-16':'20:04','2026-03-17':'20:07','2026-03-18':'20:09',
+  };
+
+  function padZ(n) { return String(n).padStart(2,'0'); }
+
+  function getDateKey(d) {
+    return d.getFullYear() + '-' + padZ(d.getMonth()+1) + '-' + padZ(d.getDate());
+  }
+
+  function startIshaCountdown() {
+    const countdownEl = document.getElementById('isha-countdown');
+    const timerEl     = document.getElementById('isha-timer');
+    const infoEl      = document.getElementById('isha-time-info');
+    const labelEl     = document.getElementById('isha-label');
+    const rightVal    = document.getElementById('isha-time-right-val');
+    if (!countdownEl) return;
+    countdownEl.style.display = 'flex';
+
+    function tick() {
+      const now = new Date();
+      const todayKey = getDateKey(now);
+      const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+      const ishaStr = ISHA_TIMES[todayKey];
+
+      if (!ishaStr) {
+        // Outside Ramadan
+        timerEl.textContent = '--:--:--';
+        timerEl.classList.remove('done');
+        labelEl.textContent = 'Tid kvar till Isha';
+        infoEl.textContent = '';
+        rightVal.textContent = '--:--';
+        return;
+      }
+
+      const [ishaH, ishaM] = ishaStr.split(':').map(Number);
+      const ishaSec = ishaH * 3600 + ishaM * 60;
+
+      rightVal.textContent = ishaStr;
+
+      if (nowSec >= ishaSec) {
+        // Bönetiden är inne — show until midnight
+        timerEl.textContent = '🕌 Bönetiden är inne';
+        timerEl.classList.add('done');
+        labelEl.textContent = 'Isha';
+        infoEl.textContent = 'Isha-bönen är inne sedan kl. ' + ishaStr;
+      } else {
+        // Count down to today's isha
+        timerEl.classList.remove('done');
+        labelEl.textContent = 'Tid kvar till Isha';
+        infoEl.textContent = 'Isha-bönen börjar kl. ' + ishaStr;
+        const diff = ishaSec - nowSec;
+        const h = Math.floor(diff / 3600);
+        const m = Math.floor((diff % 3600) / 60);
+        const s = diff % 60;
+        timerEl.textContent = padZ(h) + ':' + padZ(m) + ':' + padZ(s);
+      }
+    }
+
+    tick();
+    setInterval(tick, 1000);
+  }
 
   // ── FILTER ──
   let activeFilter = null;
