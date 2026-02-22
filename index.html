@@ -362,6 +362,7 @@
     .day-card-mobile.last-ten.today .dcm-dag.today-day { color: #7eb8f7 !important; }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     @keyframes cardPulse {
       0%   { box-shadow: 0 8px 32px rgba(36,100,93,.14), 0 0 0 0 var(--card-pulse, rgba(255,255,255,0.3)); }
       40%  { box-shadow: 0 8px 32px rgba(36,100,93,.14), 0 0 0 14px rgba(0,0,0,0); }
@@ -758,8 +759,8 @@
   // ── AUDIO ──
   const audioState = {}; // datum -> Audio object
 
-  const PLAY_ICON = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>`;
-  const PAUSE_ICON = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="3" width="4" height="18"/><rect x="14" y="3" width="4" height="18"/></svg>`;
+  const PLAY_ICON = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>`;
+  const PAUSE_ICON = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="3" width="4" height="18"/><rect x="14" y="3" width="4" height="18"/></svg>`;
 
   function createPlayBtn(datum) {
     const btn = document.createElement('button');
@@ -787,13 +788,28 @@
     });
 
     if (!audioState[datum]) {
-      audioState[datum] = new Audio(`/${datum}.mp3`);
-      audioState[datum].addEventListener('ended', () => {
+      const a = new Audio();
+      a.preload = 'none';        // Don't preload — stream on demand
+      a.src = `/${datum}.mp3`;
+      a.addEventListener('ended', () => {
         document.querySelectorAll(`.play-btn[data-datum="${datum}"]`).forEach(b => {
           b.innerHTML = PLAY_ICON;
           b.classList.remove('playing');
         });
       });
+      // Show buffering state while waiting to play
+      a.addEventListener('waiting', () => {
+        document.querySelectorAll(`.play-btn[data-datum="${datum}"]`).forEach(b => {
+          b.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" style="animation:spin 0.9s linear infinite"><path d="M12 2a10 10 0 1 0 10 10"/></svg>`;
+        });
+      });
+      a.addEventListener('playing', () => {
+        document.querySelectorAll(`.play-btn[data-datum="${datum}"]`).forEach(b => {
+          b.innerHTML = PAUSE_ICON;
+          b.classList.add('playing');
+        });
+      });
+      audioState[datum] = a;
     }
 
     const audio = audioState[datum];
