@@ -8,16 +8,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
   <link href="https://fonts.cdnfonts.com/css/digital-7-mono" rel="stylesheet">
   <style>
+    /* ── IMAM COLOURS — unchanged in both themes ── */
     :root {
-      --primary: #24645d;
-      --primary-dark: #1a4a44;
       --gold: #c9a84c;
       --gold-light: #e8c97a;
-      --cream: #f7f4ef;
-      --white: #ffffff;
-      --text: #1a1a1a;
-      --muted: #6b7280;
-      --today-bg: #e8f7f0;
       --today-green: #3dba7e;
       --abdurrahman: #e8630a;
       --saed: #d4a800;
@@ -28,25 +22,226 @@
       --abdelsalam: #7b3f00;
       --hatem: #2d6a4f;
       --ibrahim: #1a6b8a;
+
+      --bg:              #f7f4ef;
+      --surface:         #ffffff;
+      --surface-2:       #f0ece4;
+      --border:          rgba(36,100,93,0.10);
+      --border-subtle:   rgba(36,100,93,0.07);
+      --text:            #1a1a1a;
+      --muted:           #6b7280;
+      --muted-2:         #9ca3af;
+      --primary:         #24645d;
+      --primary-dark:    #1a4a44;
+      --today-bg:        #e8f7f0;
+      --row-hover:       rgba(36,100,93,0.04);
+      --chip-bg:         #ffffff;
+      --chip-shadow:     0 2px 8px rgba(0,0,0,0.06);
+      --table-shadow:    0 6px 32px rgba(36,100,93,0.12);
+      --card-shadow:     0 2px 4px rgba(0,0,0,0.04), 0 8px 24px rgba(36,100,93,0.10), 0 24px 48px rgba(36,100,93,0.06);
+      --mobile-shadow:   0 2px 12px rgba(36,100,93,0.08);
+      --info-gap:        rgba(36,100,93,0.07);
+      --cell-bg:         #ffffff;
+      --countdown-bg:    rgba(36,100,93,0.04);
+      --countdown-bdr:   rgba(36,100,93,0.09);
+      --notif-border:    rgba(36,100,93,0.20);
+      --seek-bg:         rgba(0,0,0,0.10);
+      --seek-fill:       #1a4a44;
+      --scrubber-notch:  #1a4a44;
+      --thumb-border:    #ffffff;
+      --player-bg:       #ffffff;
+      --player-border:   rgba(36,100,93,0.10);
+      --player-shadow:   0 -6px 32px rgba(0,0,0,0.11);
+      --mini-bg:         rgba(255,255,255,0.96);
+      --dcm-pages-bg:    rgba(36,100,93,0.08);
+      --dcm-surahs-bg:   rgba(36,100,93,0.06);
+      --fredag-clr:      #b45309;
+      --lordag-clr:      #1a4a44;
+      --header-bg:       #24645d;
+      --header-a-bg:     #ffffff;
+      --header-a-clr:    #1a4a44;
+      --wave-fill:       #24645d;
+      --footer-bg:       #1a4a44;
+      --legend-bg:       #ffffff;
+      /* iPhone toggle light */
+      --ios-track-off:   #e5e5ea;
+      --ios-track-on:    #34c759;
+      --ios-thumb:       #ffffff;
+    }
+
+    [data-theme="dark"] {
+      --bg:              #0f1614;
+      --surface:         #1a2420;
+      --surface-2:       #222e2a;
+      --border:          rgba(255,255,255,0.07);
+      --border-subtle:   rgba(255,255,255,0.05);
+      --text:            #e8e3db;
+      --muted:           #8a9490;
+      --muted-2:         #5a6662;
+      --primary:         #2d7a72;
+      --primary-dark:    #3a9088;
+      --today-bg:        rgba(45,122,114,0.18);
+      --row-hover:       rgba(255,255,255,0.03);
+      --chip-bg:         #1e2c28;
+      --chip-shadow:     0 2px 8px rgba(0,0,0,0.30);
+      --table-shadow:    0 6px 32px rgba(0,0,0,0.40);
+      --card-shadow:     0 2px 4px rgba(0,0,0,0.20), 0 8px 24px rgba(0,0,0,0.30), 0 24px 48px rgba(0,0,0,0.20);
+      --mobile-shadow:   0 2px 12px rgba(0,0,0,0.30);
+      --info-gap:        rgba(255,255,255,0.06);
+      --cell-bg:         #1a2420;
+      --countdown-bg:    rgba(255,255,255,0.04);
+      --countdown-bdr:   rgba(255,255,255,0.08);
+      --notif-border:    rgba(255,255,255,0.12);
+      --seek-bg:         rgba(255,255,255,0.10);
+      --seek-fill:       rgba(255,255,255,0.88);
+      --scrubber-notch:  rgba(255,255,255,0.90);
+      --thumb-border:    #1a2420;
+      --player-bg:       #1a2420;
+      --player-border:   rgba(255,255,255,0.07);
+      --player-shadow:   0 -6px 32px rgba(0,0,0,0.45);
+      --mini-bg:         rgba(18,28,24,0.97);
+      --dcm-pages-bg:    rgba(255,255,255,0.07);
+      --dcm-surahs-bg:   rgba(255,255,255,0.05);
+      --fredag-clr:      #e09840;
+      --lordag-clr:      #7ecec8;
+      --header-bg:       linear-gradient(145deg, rgba(10,26,20,0.99) 0%, rgba(14,36,28,0.99) 40%, rgba(18,48,38,0.99) 70%, rgba(24,64,54,0.99) 100%);
+      --header-a-bg:     rgba(255,255,255,0.10);
+      --header-a-clr:    rgba(255,255,255,0.88);
+      --wave-fill:       #131f1b;
+      --footer-bg:       #0d1714;
+      --legend-bg:       #1e2c28;
+      /* iPhone toggle dark */
+      --ios-track-off:   #3a3a3c;
+      --ios-track-on:    #30d158;
+      --ios-thumb:       #ffffff;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: var(--cream); font-family: 'DM Sans', sans-serif; color: var(--text); -webkit-text-size-adjust: 100%; }
+    body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); -webkit-text-size-adjust: 100%; transition: background 0.35s ease, color 0.35s ease; }
+
+    /* ══════════════════════════════════════════════
+       EXACT IMAGE TOGGLE — wide pill, label inside, dark circle thumb
+    ══════════════════════════════════════════════ */
+    .theme-toggle {
+      position: absolute; top: 10px; right: 12px; z-index: 10;
+      display: inline-flex; align-items: center;
+      background: none; border: none; padding: 0;
+      cursor: pointer; font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* The wide pill track */
+    .ios-track {
+      position: relative;
+      width: 76px;
+      height: 30px;
+      border-radius: 999px;
+      background: #e8e8e8;
+      box-shadow:
+        0 3px 8px rgba(0,0,0,0.30),
+        inset 0 1px 2px rgba(255,255,255,0.6),
+        inset 0 -1px 2px rgba(0,0,0,0.12);
+      flex-shrink: 0;
+      transition: background 0.38s cubic-bezier(0.4,0,0.2,1),
+                  box-shadow 0.38s ease;
+      overflow: hidden;
+    }
+    [data-theme="dark"] .ios-track {
+      background: #1c1c1e;
+      box-shadow:
+        0 3px 8px rgba(0,0,0,0.50),
+        inset 0 1px 3px rgba(255,255,255,0.04),
+        inset 0 -1px 3px rgba(0,0,0,0.5);
+    }
+
+    /* Label text inside the track — centred in the gap opposite the thumb */
+    .ios-track-label {
+      position: absolute;
+      top: 50%;
+      /* Light mode: thumb on right (occupies 49–76px). Centre of left zone (0–49px) = 24.5px */
+      left: 0;
+      right: calc(24px + 3px);   /* keep label out of thumb zone */
+      transform: translateY(-50%);
+      font-size: 0.38rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1.2;
+      text-align: center;
+      pointer-events: none;
+      white-space: nowrap;
+      user-select: none;
+      color: rgba(70,70,70,0.80);
+      transition: color 0.3s ease, left 0s, right 0s;
+    }
+    [data-theme="dark"] .ios-track-label {
+      /* Dark mode: thumb on left (occupies 3–27px). Centre of right zone (27–76px). */
+      left: calc(24px + 3px);
+      right: 0;
+      color: rgba(160,160,160,0.70);
+    }
+
+    /* Dark circle thumb */
+    .ios-thumb {
+      position: absolute;
+      top: 3px;
+      left: calc(100% - 3px - 24px);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 35%, #4a4a4a, #1a1a1a);
+      box-shadow:
+        0 2px 6px rgba(0,0,0,0.50),
+        0 1px 2px rgba(0,0,0,0.35),
+        inset 0 1px 1px rgba(255,255,255,0.08);
+      transition:
+        left 0.38s cubic-bezier(0.34,1.45,0.64,1),
+        width 0.10s ease;
+      will-change: left;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    [data-theme="dark"] .ios-thumb {
+      left: 3px;
+      background: radial-gradient(circle at 38% 35%, #555, #222);
+    }
+    /* Icon inside thumb — cross-dissolve between sun and moon */
+    .ios-thumb-icon {
+      position: absolute;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.28s ease, transform 0.32s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .ios-thumb-sun  { opacity: 1;  transform: scale(1)   rotate(0deg); }
+    .ios-thumb-moon { opacity: 0;  transform: scale(0.5) rotate(-30deg); }
+    [data-theme="dark"] .ios-thumb-sun  { opacity: 0;  transform: scale(0.5) rotate(30deg); }
+    [data-theme="dark"] .ios-thumb-moon { opacity: 1;  transform: scale(1)   rotate(0deg); }
+
+    /* Squish on press */
+    .theme-toggle:active .ios-thumb {
+      width: 28px;
+    }
+    [data-theme="dark"] .theme-toggle:active .ios-thumb {
+      width: 28px;
+      left: 3px;
+    }
 
     /* ── HEADER ── */
-    header { background: var(--primary); padding: 28px 20px 22px; text-align: center; position: relative; overflow: hidden; }
-    header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 15% 60%, rgba(201,168,76,0.14) 0%, transparent 55%); }
+    header { background: var(--header-bg); padding: 28px 20px 22px; text-align: center; position: relative; overflow: hidden; transition: background 0.35s ease; }
+    header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 15% 60%, rgba(201,168,76,0.14) 0%, transparent 55%); pointer-events: none; }
+    [data-theme="dark"] header::before { background: radial-gradient(ellipse at 80% 25%, rgba(201,168,76,0.09) 0%, transparent 55%), radial-gradient(ellipse at 15% 70%, rgba(36,100,93,0.18) 0%, transparent 40%); }
     .ornament { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; position: relative; z-index: 2; }
     .orn-line { height: 1px; width: 50px; }
     .orn-line.l { background: linear-gradient(to right, transparent, var(--gold)); }
     .orn-line.r { background: linear-gradient(to left, transparent, var(--gold)); }
     .orn-diamond { width: 7px; height: 7px; background: var(--gold); transform: rotate(45deg); }
     .orn-dot { width: 3px; height: 3px; background: var(--gold-light); border-radius: 50%; }
-    header h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 6vw, 3.2rem); font-weight: 600; color: var(--white); letter-spacing: .03em; line-height: 1.2; position: relative; z-index: 2; }
+    header h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 6vw, 3.2rem); font-weight: 600; color: #ffffff; letter-spacing: .03em; line-height: 1.2; position: relative; z-index: 2; }
     .header-address { margin-top: 20px; position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 10px; }
     .header-address .addr-text { display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,.65); font-size: .82rem; }
-    .header-address a { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: var(--primary-dark); font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 7px 18px; border-radius: 30px; text-decoration: none; box-shadow: 0 2px 12px rgba(0,0,0,.15); }
-    .wave { background: var(--primary); line-height: 0; }
+    .header-address a { display: inline-flex; align-items: center; gap: 6px; background: var(--header-a-bg); color: var(--header-a-clr); font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 7px 18px; border-radius: 30px; text-decoration: none; box-shadow: 0 2px 12px rgba(0,0,0,.15); transition: background 0.35s, color 0.35s; }
+    .wave { background: var(--header-bg); line-height: 0; transition: background 0.35s; }
     .wave svg { display: block; width: 100%; }
 
     /* ── MAIN ── */
@@ -57,12 +252,13 @@
     ═══════════════════════════════════════════════════ */
     .today-card {
       display: none;
-      background: var(--white);
+      background: var(--surface);
       border-radius: 22px;
-      border: 1px solid rgba(36,100,93,0.10);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 8px 24px rgba(36,100,93,0.10), 0 24px 48px rgba(36,100,93,0.06);
+      border: 1px solid var(--border);
+      box-shadow: var(--card-shadow);
       overflow: hidden;
       margin-bottom: 32px;
+      transition: background 0.35s, border-color 0.35s, box-shadow 0.35s;
     }
 
     .today-card-top {
@@ -97,7 +293,6 @@
     .today-date-row { display: flex; align-items: center; gap: 8px; }
     .today-date-text { font-size: 0.82rem; color: rgba(255,255,255,0.55); font-weight: 400; letter-spacing: 0.02em; }
 
-    /* ── TODAY CARD moon ── */
     .today-moon-wrap { position: relative; display: inline-flex; align-items: center; }
     .today-moon-icon {
       display: inline-flex; align-items: center; justify-content: center;
@@ -116,8 +311,6 @@
       0%, 100% { box-shadow: 0 0 0 0 rgba(58,123,213,0.5); }
       50% { box-shadow: 0 0 0 6px rgba(58,123,213,0); }
     }
-
-    /* ── GOLD GLOW — used by both today-card odd moon and table odd moon ── */
     @keyframes moonGlow {
       0%,100% {
         box-shadow: 0 0 4px 1px rgba(201,168,76,0.6), 0 0 10px 2px rgba(201,168,76,0.35), 0 0 22px 4px rgba(201,168,76,0.15);
@@ -127,7 +320,6 @@
       }
     }
 
-    /* Today card tooltip — dark + gold border (always odd night when shown) */
     .today-moon-tooltip {
       position: absolute;
       bottom: calc(100% + 8px); left: 50%;
@@ -159,10 +351,9 @@
       opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
     }
 
-    /* ── Body of today card ── */
-    .today-card-body { padding: 16px 28px 20px; display: flex; flex-direction: column; gap: 0; }
-    .today-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(36,100,93,0.07); border-radius: 14px; overflow: hidden; margin-bottom: 14px; }
-    .today-info-cell { background: #fff; padding: 12px 16px; }
+    .today-card-body { padding: 16px 28px 20px; display: flex; flex-direction: column; gap: 0; background: var(--surface); transition: background 0.35s; }
+    .today-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--info-gap); border-radius: 14px; overflow: hidden; margin-bottom: 14px; transition: background 0.35s; }
+    .today-info-cell { background: var(--cell-bg); padding: 12px 16px; transition: background 0.35s; }
     .today-info-cell:first-child { border-radius: 14px 0 0 14px; }
     .today-info-cell:last-child  { border-radius: 0 14px 14px 0; }
     @media (max-width: 480px) {
@@ -170,12 +361,11 @@
       .today-info-cell:first-child { border-radius: 14px 14px 0 0; }
       .today-info-cell:last-child  { border-radius: 0 0 14px 14px; }
     }
-    .today-info-label { font-size: 0.60rem; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 5px; }
-    .today-info-value { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; font-weight: 600; color: var(--primary-dark); line-height: 1.2; display: block; }
-    .today-info-sub { font-size: 0.75rem; color: var(--muted); margin-top: 3px; display: block; line-height: 1.4; }
+    .today-info-label { font-size: 0.60rem; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 5px; transition: color 0.35s; }
+    .today-info-value { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; font-weight: 600; color: var(--primary-dark); line-height: 1.2; display: block; transition: color 0.35s; }
+    .today-info-sub { font-size: 0.75rem; color: var(--muted); margin-top: 3px; display: block; line-height: 1.4; transition: color 0.35s; }
 
-    /* Countdown */
-    .today-countdown-section { display: none; background: rgba(36,100,93,0.04); border: 1px solid rgba(36,100,93,0.09); border-radius: 14px; padding: 13px 16px; margin-bottom: 14px; transition: background 0.8s ease, border-color 0.8s ease, box-shadow 0.8s ease; }
+    .today-countdown-section { display: none; background: var(--countdown-bg); border: 1px solid var(--countdown-bdr); border-radius: 14px; padding: 13px 16px; margin-bottom: 14px; transition: background 0.8s ease, border-color 0.8s ease, box-shadow 0.8s ease; }
     .today-countdown-section.isha-done { background: rgba(36,186,120,0.08); border-color: rgba(36,186,120,0.25); }
     @keyframes ishaGlow { 0% { box-shadow: 0 0 0 0 rgba(61,186,126,0); } 20% { box-shadow: 0 0 0 8px rgba(61,186,126,0.18); } 50% { box-shadow: 0 0 0 16px rgba(61,186,126,0.08); } 80% { box-shadow: 0 0 0 8px rgba(61,186,126,0.12); } 100% { box-shadow: 0 0 0 0 rgba(61,186,126,0); } }
     .today-countdown-section.isha-pulsing { animation: ishaGlow 1.6s ease-out 3; }
@@ -184,16 +374,15 @@
     .today-countdown-label { font-size: 0.60rem; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; transition: color 0.6s ease; }
     .isha-done .today-countdown-label { color: #1d7a4e; }
     .timer-wrap { position: relative; min-height: 2.2rem; display: flex; align-items: center; }
-    .today-timer { font-family: 'Digital-7 Mono', 'Digital-7', monospace; font-size: 2.0rem; font-weight: 400; color: var(--primary-dark); letter-spacing: 0.05em; line-height: 1; transition: opacity 0.5s ease, transform 0.5s ease; }
+    .today-timer { font-family: 'Digital-7 Mono', 'Digital-7', monospace; font-size: 2.0rem; font-weight: 400; color: var(--primary-dark); letter-spacing: 0.05em; line-height: 1; transition: opacity 0.5s ease, transform 0.5s ease, color 0.35s; }
     .today-timer.fading-out { opacity: 0; transform: translateY(-6px); pointer-events: none; }
     .today-timer-done { position: absolute; left: 0; font-family: 'DM Sans', sans-serif; font-size: 1.05rem; font-weight: 600; color: #1d7a4e; opacity: 0; transform: translateY(6px); transition: opacity 0.5s ease 0.3s, transform 0.5s ease 0.3s; white-space: nowrap; }
     .today-timer-done.fading-in { opacity: 1; transform: translateY(0); }
     .today-countdown-sub { font-size: 0.72rem; color: var(--muted); margin-top: 6px; display: block; transition: color 0.6s ease; }
     .isha-done .today-countdown-sub { color: #2d9e6b; }
 
-    /* Notification button */
-    .notif-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px solid rgba(36,100,93,0.20); border-radius: 100px; padding: 5px 12px; font-size: 0.68rem; font-weight: 500; font-family: inherit; color: var(--muted); cursor: pointer; white-space: nowrap; transition: border-color 0.2s, color 0.2s, background 0.2s; flex-shrink: 0; align-self: flex-start; }
-    .notif-btn:hover { border-color: var(--primary); color: var(--primary-dark); background: rgba(36,100,93,0.04); }
+    .notif-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--notif-border); border-radius: 100px; padding: 5px 12px; font-size: 0.68rem; font-weight: 500; font-family: inherit; color: var(--muted); cursor: pointer; white-space: nowrap; transition: border-color 0.2s, color 0.2s, background 0.2s; flex-shrink: 0; align-self: flex-start; }
+    .notif-btn:hover { border-color: var(--primary); color: var(--primary-dark); background: var(--row-hover); }
     .notif-btn.granted { border-color: rgba(36,186,120,0.35); color: #1d7a4e; background: rgba(36,186,120,0.06); cursor: default; pointer-events: none; }
     .notif-btn.denied { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
@@ -201,7 +390,6 @@
     .today-scroll-btn { display: inline-flex; align-items: center; gap: 7px; background: var(--primary-dark); color: #fff; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase; padding: 10px 20px; border-radius: 100px; border: none; cursor: pointer; font-family: inherit; white-space: nowrap; box-shadow: 0 2px 12px rgba(26,74,68,0.25); transition: box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease; }
     .today-scroll-btn:hover { background: var(--primary); box-shadow: 0 4px 20px rgba(26,74,68,0.35); transform: translateY(-1px); }
 
-    /* ── Hadith quote below date (last 10 nights) — Option B ── */
     .today-hadith-inline {
       position: relative; z-index: 2;
       margin-top: 12px;
@@ -261,35 +449,35 @@
 
     /* ── SECTION TITLE ── */
     .section-title { text-align: center; margin-bottom: 20px; }
-    .section-title h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.3rem, 4vw, 1.9rem); font-weight: 600; color: var(--primary-dark); }
+    .section-title h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.3rem, 4vw, 1.9rem); font-weight: 600; color: var(--primary-dark); transition: color 0.35s; }
     .divider { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
     .divider span { height: 1px; width: 40px; background: var(--gold); display: block; }
     .divider i { width: 5px; height: 5px; background: var(--gold); transform: rotate(45deg); display: block; }
 
     /* ── LEGEND ── */
     .legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
-    .legend-item { display: flex; align-items: center; gap: 6px; background: var(--white); border-radius: 30px; padding: 5px 12px 5px 8px; box-shadow: 0 2px 8px rgba(0,0,0,.06); font-size: .78rem; font-weight: 500; }
+    .legend-item { display: flex; align-items: center; gap: 6px; background: var(--legend-bg); border-radius: 30px; padding: 5px 12px 5px 8px; box-shadow: var(--chip-shadow); font-size: .78rem; font-weight: 500; color: var(--text); transition: background 0.35s, color 0.35s, box-shadow 0.35s; }
     .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
     /* ── TABLE ── */
-    .table-wrap { overflow-x: auto; border-radius: 16px; box-shadow: 0 6px 32px rgba(36,100,93,.12); }
-    table { width: 100%; border-collapse: collapse; background: var(--white); font-size: .875rem; }
-    thead tr { background: var(--primary); }
+    .table-wrap { overflow-x: auto; border-radius: 16px; box-shadow: var(--table-shadow); transition: box-shadow 0.35s; }
+    table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: .875rem; transition: background 0.35s; }
+    thead tr { background: var(--primary); transition: background 0.35s; }
     thead th { font-size: .7rem; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.7); padding: 14px 16px; text-align: left; white-space: nowrap; }
-    tbody tr { border-bottom: 1px solid rgba(36,100,93,.07); transition: background .15s; border-left: 4px solid transparent; }
+    tbody tr { border-bottom: 1px solid var(--border-subtle); transition: background .15s; border-left: 4px solid transparent; }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: rgba(36,100,93,.04); }
+    tbody tr:hover { background: var(--row-hover); }
     tbody tr.today { background: var(--today-bg) !important; border-left-color: var(--today-green); }
     td { padding: 12px 16px; vertical-align: middle; }
-    .td-dag { font-weight: 700; font-size: .95rem; color: var(--primary-dark); text-align: center; }
-    .td-sidor { font-size: .8rem; color: var(--muted); white-space: nowrap; }
+    .td-dag { font-weight: 700; font-size: .95rem; color: var(--primary-dark); text-align: center; transition: color 0.35s; }
+    .td-sidor { font-size: .8rem; color: var(--muted); white-space: nowrap; transition: color 0.35s; }
     .td-surah { font-size: .78rem; color: var(--primary-dark); max-width: 240px; line-height: 1.4; }
-    .td-datum { font-size: .8rem; color: var(--muted); white-space: nowrap; }
+    .td-datum { font-size: .8rem; color: var(--muted); white-space: nowrap; transition: color 0.35s; }
     .td-datum.today-date { color: #1d7a4e; font-weight: 600; }
-    .td-veckodag { font-size: .8rem; font-weight: 500; white-space: nowrap; }
-    .fredag { color: #b45309; font-weight: 700; }
-    .lordag { color: var(--primary-dark); }
-    .sondag { color: #b45309; }
+    .td-veckodag { font-size: .8rem; font-weight: 500; white-space: nowrap; transition: color 0.35s; }
+    .fredag { color: var(--fredag-clr); font-weight: 700; }
+    .lordag { color: var(--lordag-clr); }
+    .sondag { color: var(--fredag-clr); }
     .imam-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px 4px 8px; border-radius: 30px; font-size: .78rem; font-weight: 500; color: #fff; white-space: nowrap; }
     .imam-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.35); flex-shrink: 0; }
     .imam-abdurrahman { background: var(--abdurrahman); }
@@ -306,35 +494,134 @@
 
     /* ── TOOLTIP (surah) ── */
     .surah-cell { position: relative; cursor: pointer; }
-    .surah-names { font-size: .78rem; color: var(--primary-dark); line-height: 1.5; }
+    .surah-names { font-size: .78rem; color: var(--primary-dark); line-height: 1.5; transition: color 0.35s; }
     .tooltip-box { display: none; position: absolute; left: 0; top: calc(100% + 6px); background: var(--primary-dark); color: #fff; font-size: .75rem; font-weight: 500; padding: 7px 12px; border-radius: 8px; white-space: nowrap; z-index: 100; box-shadow: 0 4px 16px rgba(0,0,0,.25); letter-spacing: .02em; pointer-events: none; }
     .tooltip-box::before { content: ''; position: absolute; top: -5px; left: 12px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 5px solid var(--primary-dark); }
     @media (hover: hover) { .surah-cell:hover .tooltip-box { display: block; } }
     .tooltip-box.visible { display: block; }
 
+    /* ══════════════════════════════════════════
+       CHANGE 1 — Moon tooltip: full-width slide-up on mobile
+    ══════════════════════════════════════════ */
+    @keyframes moonTooltipSlideUp {
+      0%   { opacity: 0; transform: translateY(20px) scale(0.96); }
+      60%  { opacity: 1; transform: translateY(-3px) scale(1.01); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes moonTooltipSlideDown {
+      0%   { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(14px) scale(0.96); }
+    }
+
+    @media (max-width: 640px) {
+      /* Overlay backdrop */
+      .moon-tooltip-backdrop {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 998;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        animation: fadeIn 0.25s ease forwards;
+      }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      .moon-tooltip-backdrop.visible { display: block; }
+      .moon-tooltip-backdrop.hiding  { animation: fadeOut 0.25s ease forwards; }
+      @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+      /* Override existing moon-tooltip on mobile */
+      .moon-tooltip,
+      .today-moon-tooltip {
+        position: fixed !important;
+        bottom: 0 !important; left: 0 !important; right: 0 !important;
+        top: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        transform: none !important;
+        border-radius: 22px 22px 0 0 !important;
+        padding: 20px 22px 32px !important;
+        font-size: 0.88rem !important;
+        line-height: 1.7 !important;
+        z-index: 999 !important;
+        pointer-events: auto !important;
+        visibility: hidden;
+        opacity: 0;
+        transition: none !important;
+      }
+      .moon-tooltip.visible,
+      .today-moon-wrap.active .today-moon-tooltip,
+      .moon-wrap.active .moon-tooltip {
+        visibility: visible !important;
+        opacity: 1 !important;
+        animation: moonTooltipSlideUp 0.42s cubic-bezier(0.34,1.56,0.64,1) forwards !important;
+      }
+      .moon-tooltip.hiding,
+      .today-moon-tooltip.hiding {
+        animation: moonTooltipSlideDown 0.28s ease forwards !important;
+      }
+
+      /* Gold variant on mobile too */
+      .moon-tooltip.gold-tooltip,
+      .today-moon-tooltip {
+        background: #12211f !important;
+        border: 1px solid rgba(201,168,76,0.40) !important;
+        border-bottom: none !important;
+        box-shadow: 0 -8px 40px rgba(0,0,0,0.5) !important;
+        color: rgba(255,255,255,0.88) !important;
+      }
+      /* Handle bar at top */
+      .moon-tooltip::before,
+      .today-moon-tooltip::before {
+        content: '' !important;
+        position: absolute !important; top: 10px !important; left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 36px !important; height: 4px !important;
+        background: rgba(255,255,255,0.25) !important;
+        border-radius: 99px !important;
+        right: auto !important;
+      }
+      /* Remove arrow */
+      .moon-tooltip::after,
+      .today-moon-tooltip::after { display: none !important; }
+
+      /* Hadith label inside mobile tooltip */
+      .moon-tooltip-title {
+        display: block;
+        font-size: 0.60rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(201,168,76,0.80);
+        margin-bottom: 10px;
+        margin-top: 10px;
+        font-style: normal;
+      }
+    }
+
     /* ── MOBILE CARDS ── */
     .mobile-cards { display: none; }
-    .day-card-mobile { background: var(--white); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 2px 12px rgba(36,100,93,.08); border-left: 4px solid transparent; }
+    .day-card-mobile { background: var(--surface); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--mobile-shadow); border-left: 4px solid transparent; transition: background 0.35s, box-shadow 0.35s; }
     .day-card-mobile.today { background: var(--today-bg); border-left-color: var(--today-green); }
     .dcm-top { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
     .dcm-audio-right .play-btn { width: 34px; height: 34px; }
     .dcm-audio-right { display: flex; align-items: center; margin-left: auto; flex-shrink: 0; }
-    .dcm-dag { font-weight: 700; font-size: 1.3rem; color: var(--primary-dark); min-width: 32px; text-align: center; flex-shrink: 0; }
+    .dcm-dag { font-weight: 700; font-size: 1.3rem; color: var(--primary-dark); min-width: 32px; text-align: center; flex-shrink: 0; transition: color 0.35s; }
     .dcm-dag.today-day { color: #1d7a4e; }
     .dcm-body { flex: 1; min-width: 0; }
     .dcm-imam { margin-bottom: 5px; }
     .dcm-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .dcm-date { font-size: .75rem; color: var(--muted); }
+    .dcm-date { font-size: .75rem; color: var(--muted); transition: color 0.35s; }
     .dcm-day-label { font-size: .75rem; font-weight: 500; }
-    .dcm-pages { font-size: .75rem; color: var(--muted); background: rgba(36,100,93,.08); padding: 2px 8px; border-radius: 10px; }
-    .dcm-surahs { margin-left: 46px; font-size: .78rem; color: var(--primary-dark); background: rgba(36,100,93,.06); border-radius: 8px; padding: 6px 10px; line-height: 1.5; position: relative; cursor: pointer; }
-    .dcm-surahs-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); display: block; margin-bottom: 2px; }
+    .dcm-pages { font-size: .75rem; color: var(--muted); background: var(--dcm-pages-bg); padding: 2px 8px; border-radius: 10px; transition: background 0.35s, color 0.35s; }
+    .dcm-surahs { margin-left: 46px; font-size: .78rem; color: var(--primary-dark); background: var(--dcm-surahs-bg); border-radius: 8px; padding: 6px 10px; line-height: 1.5; position: relative; cursor: pointer; transition: background 0.35s, color 0.35s; }
+    .dcm-surahs-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); display: block; margin-bottom: 2px; transition: color 0.35s; }
     .dcm-tooltip { max-height: 0; overflow: hidden; opacity: 0; margin-top: 0; padding: 0 10px; background: var(--primary-dark); color: #fff; font-size: .75rem; font-weight: 500; border-radius: 7px; letter-spacing: .02em; transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease, margin-top 0.35s ease, padding 0.35s ease; }
     .dcm-tooltip.visible { max-height: 80px; opacity: 1; margin-top: 6px; padding: 7px 10px; }
 
     /* ── LAST 10 NIGHTS ── */
-    tbody tr.last-ten { background: var(--white); }
+    tbody tr.last-ten { background: var(--surface); }
     tbody tr.last-ten.today { background: #0f2d5e !important; border-left-color: #3a7bd5; }
+    [data-theme="dark"] tbody tr.last-ten.today { background: #0a2040 !important; }
     tbody tr.last-ten.today td { color: #fff !important; }
     tbody tr.last-ten.today .td-sidor,
     tbody tr.last-ten.today .td-datum,
@@ -371,7 +658,6 @@
     }
     .moon-wrap:hover .moon-tooltip, .moon-wrap.active .moon-tooltip { opacity: 1; visibility: visible; transform: translateY(0); }
 
-    /* ── GOLD TOOLTIP — odd nights only ── */
     .moon-tooltip.gold-tooltip {
       background: #12211f;
       border: 1px solid rgba(201,168,76,0.40);
@@ -385,18 +671,51 @@
     }
     .moon-tooltip.gold-tooltip::after { border-top-color: #12211f; }
 
-    /* ── AUDIO PLAY BUTTON ── */
-    .play-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--primary); border: none; cursor: pointer; color: #fff; flex-shrink: 0; box-shadow: 0 2px 8px rgba(36,100,93,.3); transition: transform 0.15s ease, box-shadow 0.15s ease; }
-    .play-btn:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(36,100,93,.4); }
-    .play-btn.playing { background: #c0392b; }
-    .play-btn svg { display: block; }
+    /* ══════════════════════════════════════════
+       CHANGE 3 — Table play button: same spring + ripple as sticky player
+    ══════════════════════════════════════════ */
+    .play-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: none; cursor: pointer; color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(36,100,93,.3);
+      position: relative; overflow: hidden;
+      transition: background 0.42s cubic-bezier(0.4,0,0.2,1),
+                  box-shadow  0.15s ease;
+    }
+    .play-btn:hover { box-shadow: 0 4px 14px rgba(36,100,93,.45); }
+    .play-btn.playing { background: #c0392b; box-shadow: 0 2px 10px rgba(192,57,43,0.40); }
+    .play-btn svg { display: block; position: relative; z-index: 1; }
+    /* Spring animation */
+    @keyframes playBtnSpring {
+      0%   { transform: scale(1); }
+      28%  { transform: scale(0.78); }
+      62%  { transform: scale(1.14); }
+      84%  { transform: scale(0.94); }
+      100% { transform: scale(1); }
+    }
+    .play-btn.springing { animation: playBtnSpring 0.48s cubic-bezier(0.34,1.56,0.64,1); }
+    /* Ripple on table btn */
+    .play-btn-ripple {
+      position: absolute; border-radius: 50%;
+      width: 32px; height: 32px; left: 0; top: 0;
+      background: rgba(255,255,255,0.28);
+      transform: scale(0); pointer-events: none;
+      animation: spmRipple 0.55s ease-out forwards;
+    }
+    @keyframes spmRipple { to { transform: scale(2.6); opacity: 0; } }
+
     .td-audio { text-align: center; width: 36px; padding: 12px 4px 12px 8px; }
     .td-moon { text-align: center; width: 32px; padding: 12px 8px 12px 0; }
     .moon-icon svg { display: block; }
 
     /* ── MOBILE last-ten ── */
-    .day-card-mobile.last-ten { background: var(--white); }
+    .day-card-mobile.last-ten { background: var(--surface); }
     .day-card-mobile.last-ten.today { background: #0f2d5e !important; border-left-color: #3a7bd5; }
+    [data-theme="dark"] .day-card-mobile.last-ten.today { background: #0a2040 !important; }
     .day-card-mobile.last-ten.today .dcm-dag,
     .day-card-mobile.last-ten.today .dcm-date,
     .day-card-mobile.last-ten.today .dcm-day-label { color: rgba(255,255,255,0.85) !important; }
@@ -407,51 +726,179 @@
     .day-card-mobile.last-ten.today .today-badge { background: #3a7bd5; }
     .day-card-mobile.last-ten.today .dcm-dag.today-day { color: #7eb8f7 !important; }
 
-    /* ── STICKY BOTTOM PLAYER ── */
+    /* ══════════════════════════════════════════
+       STICKY BOTTOM PLAYER
+    ══════════════════════════════════════════ */
     .sticky-player { position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999; }
-    .player-full { background: #fff; border-radius: 22px 22px 0 0; border-top: 1px solid rgba(36,100,93,.10); box-shadow: 0 -6px 32px rgba(0,0,0,.11); padding: 10px 18px 10px; transform-origin: bottom center; transform: translateY(0) scaleY(1); opacity: 1; transition: transform 0.52s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease, box-shadow 0.52s ease; will-change: transform, opacity; pointer-events: none; }
+    .player-full { background: var(--player-bg); border-radius: 22px 22px 0 0; border-top: 1px solid var(--player-border); box-shadow: var(--player-shadow); padding: 10px 18px 10px; transform-origin: bottom center; transform: translateY(0) scaleY(1); opacity: 1; transition: transform 0.52s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease, box-shadow 0.52s ease, background 0.35s, border-color 0.35s; will-change: transform, opacity; pointer-events: none; }
     .sticky-player.visible .player-full { pointer-events: auto; }
     .sticky-player:not(.visible):not(.mini-mode) .player-full { transform: translateY(100%); opacity: 0; }
     .sticky-player.mini-mode .player-full { transform: translateY(55%) scaleY(0.08); opacity: 0; box-shadow: none; pointer-events: none; }
     .sticky-top-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; min-width: 0; transform-origin: top center; transition: transform 0.32s cubic-bezier(0.4,0,0.2,1), opacity 0.20s ease; }
     .sticky-player.mini-mode .sticky-top-row { transform: translateY(-8px) scaleY(0.3); opacity: 0; }
-    .sticky-day-badge { font-size: .68rem; color: var(--primary-dark); font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-    .sticky-day-sub { font-size: .6rem; color: #9ca3af; font-weight: 400; white-space: nowrap; flex-shrink: 0; }
+    .sticky-day-badge { font-size: .68rem; color: var(--primary-dark); font-weight: 700; white-space: nowrap; flex-shrink: 0; transition: color 0.35s; }
+    .sticky-day-sub { font-size: .6rem; color: var(--muted-2); font-weight: 400; white-space: nowrap; flex-shrink: 0; transition: color 0.35s; }
     .sticky-marquee-wrap { flex: 1; min-width: 0; overflow: hidden; position: relative; }
     .sticky-marquee-wrap.fading { mask-image: linear-gradient(to right, transparent 0%, black 8%, black 85%, transparent 100%); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 85%, transparent 100%); }
     .sticky-marquee-inner { display: inline-flex; white-space: nowrap; }
     .sticky-marquee-inner.scrolling { animation: marqueeScroll var(--marquee-dur, 18s) linear infinite; }
-    .sticky-marquee-text { font-size: .68rem; color: #555; padding-right: 48px; }
+    .sticky-marquee-text { font-size: .68rem; color: var(--muted); padding-right: 48px; transition: color 0.35s; }
     @keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-    .sticky-times { font-size: .68rem; color: #9ca3af; font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0; }
+    .sticky-times { font-size: .68rem; color: var(--muted-2); font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0; transition: color 0.35s; }
     .sticky-seek-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .sticky-seek { flex: 1; height: 4px; border-radius: 4px; background: rgba(36,100,93,.15); position: relative; cursor: pointer; }
-    .sticky-seek-fill { height: 100%; border-radius: 4px; background: var(--primary-dark); width: 0%; pointer-events: none; }
-    .sticky-seek-thumb { position: absolute; top: 50%; left: 0%; width: 12px; height: 12px; border-radius: 50%; background: var(--primary-dark); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.2); transform: translate(-50%, -50%); pointer-events: none; transition: opacity 0.22s ease, transform 0.22s ease; }
-    .sticky-player.mini-mode .sticky-seek-thumb { opacity: 0; transform: translate(-50%,-50%) scale(0.1); }
-    .sticky-controls { display: flex; align-items: center; justify-content: center; gap: 24px; transform-origin: bottom center; transition: transform 0.30s cubic-bezier(0.4,0,0.2,1), opacity 0.20s ease; }
+
+    .sticky-seek {
+      flex: 1; height: 28px; display: flex; align-items: center;
+      position: relative; cursor: grab; touch-action: none;
+    }
+    .sticky-seek.seeking { cursor: grabbing; }
+    /* Track (unplayed) */
+    .sticky-seek::before {
+      content: ''; position: absolute; left: 0; right: 0; top: 50%;
+      height: 3px; transform: translateY(-50%); border-radius: 999px;
+      background: var(--seek-bg);
+      transition: height 0.18s cubic-bezier(0.4,0,0.2,1), background 0.35s;
+      pointer-events: none;
+    }
+    .sticky-seek:hover::before, .sticky-seek.seeking::before, .sticky-seek.bar-expanded::before { height: 5px; }
+    /* Fill (played) */
+    .sticky-seek-fill {
+      position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      height: 3px; border-radius: 999px;
+      background: var(--seek-fill);
+      width: 0%; pointer-events: none; z-index: 1;
+      transition: height 0.18s cubic-bezier(0.4,0,0.2,1), background 0.35s;
+    }
+    .sticky-seek:hover .sticky-seek-fill,
+    .sticky-seek.seeking .sticky-seek-fill,
+    .sticky-seek.bar-expanded .sticky-seek-fill { height: 5px; }
+    /* Scrubber dot — hidden at rest, round dot on hover/drag */
+    .sticky-seek-thumb {
+      position: absolute; top: 50%; left: 0%;
+      width: 0px; height: 0px;
+      border-radius: 50%;
+      background: var(--scrubber-notch);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+      transform: translate(-50%, -50%);
+      pointer-events: none; touch-action: none; z-index: 3;
+      transition: width  0.18s cubic-bezier(0.34,1.56,0.64,1),
+                  height 0.18s cubic-bezier(0.34,1.56,0.64,1),
+                  background 0.35s;
+    }
+    .sticky-seek:hover .sticky-seek-thumb,
+    .sticky-seek.seeking .sticky-seek-thumb,
+    .sticky-seek.bar-expanded .sticky-seek-thumb { width: 13px; height: 13px; }
+    .sticky-seek-thumb.dragging { width: 13px !important; height: 13px !important; }
+    .sticky-player.mini-mode .sticky-seek-thumb { width: 0 !important; height: 0 !important; }
+
+    /* ══════════════════════════════════════════
+       CHANGE 4 — Sticky player controls: bigger buttons, more spacing
+    ══════════════════════════════════════════ */
+    .sticky-controls {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      position: relative;
+      transform-origin: bottom center;
+      transition: transform 0.30s cubic-bezier(0.4,0,0.2,1), opacity 0.20s ease;
+    }
+    /* CHANGE 4: Left side with more gap from center */
+    .sticky-ctrl-left  { display: flex; align-items: center; justify-content: flex-end; gap: 14px; padding-right: 20px; }
+    /* CHANGE 4: Right side with more gap from center */
+    .sticky-ctrl-right { display: flex; align-items: center; justify-content: flex-start; gap: 14px; padding-left: 20px; }
+
     .sticky-player.mini-mode .sticky-controls { transform: translateY(16px) scaleY(0.15); opacity: 0; }
-    .sticky-ctrl-btn { background: none; border: none; cursor: pointer; color: var(--primary-dark); padding: 4px; opacity: .7; transition: opacity 0.15s ease, transform 0.15s ease; display: flex; align-items: center; justify-content: center; }
-    .sticky-ctrl-btn:hover { opacity: 1; transform: scale(1.1); }
-    .sticky-ctrl-btn:disabled { opacity: .25; cursor: default; transform: none; }
-    .sticky-play-main { width: 36px; height: 36px; border-radius: 50%; background: var(--primary-dark); border: none; cursor: pointer; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(36,100,93,.35); transition: transform 0.15s ease, box-shadow 0.15s ease; }
-    .sticky-play-main:hover { transform: scale(1.08); box-shadow: 0 4px 16px rgba(36,100,93,.4); }
-    .sticky-play-main.red { background: #c0392b; }
-    .player-mini { position: absolute; bottom: 0; left: 0; right: 0; display: flex; flex-direction: column; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 18px 18px 0 0; border-top: 1px solid rgba(36,100,93,.10); box-shadow: 0 -4px 24px rgba(0,0,0,.10); overflow: hidden; transform: translateY(100%) scaleY(0.4); transform-origin: bottom center; opacity: 0; pointer-events: none; transition: transform 0.52s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease 0.06s; will-change: transform, opacity; }
+
+    /* CHANGE 4: Bigger prev/next/mute — 40px touch target */
+    .sticky-ctrl-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--primary-dark);
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      opacity: .75;
+      transition: opacity 0.15s ease, transform 0.15s ease, color 0.35s, background 0.15s;
+    }
+    .sticky-ctrl-btn:hover { opacity: 1; transform: scale(1.12); background: var(--row-hover); }
+    .sticky-ctrl-btn:disabled { opacity: .25; cursor: default; transform: none; background: none; }
+    /* CHANGE 4: Icons inside ctrl buttons — 22px */
+    .sticky-ctrl-btn svg { width: 22px; height: 22px; display: block; }
+
+    /* ── Main play button — ALT C spring + ripple ── */
+    .sticky-play-main {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--primary-dark);
+      border: none; cursor: pointer; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 10px rgba(36,100,93,.35);
+      position: relative; overflow: hidden;
+      transition: background 0.42s cubic-bezier(0.4,0,0.2,1), box-shadow 0.42s ease;
+    }
+    .sticky-play-main:hover { box-shadow: 0 4px 20px rgba(36,100,93,.45); }
+    .sticky-play-main.red { background: #c0392b; box-shadow: 0 2px 10px rgba(192,57,43,0.40); }
+    .sticky-play-main.red:hover { box-shadow: 0 4px 20px rgba(192,57,43,.50); }
+
+    @keyframes spmSpring {
+      0%   { transform: scale(1); }
+      28%  { transform: scale(0.80); }
+      62%  { transform: scale(1.13); }
+      84%  { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+    .sticky-play-main.springing { animation: spmSpring 0.48s cubic-bezier(0.34,1.56,0.64,1); }
+
+    .spm-ripple {
+      position: absolute; border-radius: 50%;
+      width: 48px; height: 48px; left: 0; top: 0;
+      background: rgba(255,255,255,0.22);
+      transform: scale(0); pointer-events: none;
+      animation: spmRipple 0.55s ease-out forwards;
+    }
+
+    /* CHANGE 3: Play icon perfectly centered via absolute positioning */
+    .spm-icon-wrap {
+      position: relative;
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .spm-icon-wrap svg {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.26s cubic-bezier(0.4,0,0.2,1),
+                  transform 0.26s cubic-bezier(0.4,0,0.2,1);
+    }
+    .spm-play  { opacity: 1; transform: translate(calc(-50% + 1px), -50%) scale(1) !important; }
+    .spm-pause { opacity: 0; transform: translate(-50%, -50%) scale(0.45) !important; }
+
+    .sticky-play-main.red .spm-play  { opacity: 0; transform: translate(calc(-50% + 1px), -50%) scale(0.45) !important; }
+    .sticky-play-main.red .spm-pause { opacity: 1; transform: translate(-50%, -50%) scale(1) !important; }
+
+    .player-mini { position: absolute; bottom: 0; left: 0; right: 0; display: flex; flex-direction: column; background: var(--mini-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 18px 18px 0 0; border-top: 1px solid var(--player-border); box-shadow: 0 -4px 24px rgba(0,0,0,.10); overflow: hidden; transform: translateY(100%) scaleY(0.4); transform-origin: bottom center; opacity: 0; pointer-events: none; transition: transform 0.52s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease 0.06s, background 0.35s, border-color 0.35s; will-change: transform, opacity; }
     .sticky-player.mini-mode .player-mini { transform: translateY(0) scaleY(1); opacity: 1; pointer-events: auto; }
-    .mini-bar-track { width: 100%; height: 3px; background: rgba(36,100,93,.10); flex-shrink: 0; }
-    .mini-bar-fill { height: 100%; width: 0%; background: var(--primary-dark); border-radius: 0 2px 2px 0; position: relative; overflow: hidden; }
-    .mini-bar-fill::after { content: ''; position: absolute; top: 0; left: -60%; bottom: 0; width: 60%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent); animation: barShimmer 2.8s ease-in-out infinite; }
+    .mini-bar-track { width: 100%; height: 22px; background: transparent; flex-shrink: 0; position: relative; display: flex; align-items: center; cursor: grab; touch-action: none; overflow: visible; }
+    .mini-bar-track.seeking { cursor: grabbing; }
+    .mini-bar-track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); height: 3px; border-radius: 999px; background: var(--seek-bg); transition: height 0.18s cubic-bezier(0.4,0,0.2,1), background 0.35s; pointer-events: none; }
+    .mini-bar-track:hover::before, .mini-bar-track.seeking::before, .mini-bar-track.bar-expanded::before { height: 5px; }
+    .mini-bar-fill { position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 3px; width: 0%; border-radius: 999px; background: var(--seek-fill); pointer-events: none; z-index: 1; transition: height 0.18s cubic-bezier(0.4,0,0.2,1), background 0.35s; overflow: hidden; }
+    .mini-bar-track:hover .mini-bar-fill, .mini-bar-track.seeking .mini-bar-fill, .mini-bar-track.bar-expanded .mini-bar-fill { height: 5px; }
+    .mini-bar-fill::after { content: ''; position: absolute; top: 0; left: -60%; bottom: 0; width: 60%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent); animation: barShimmer 2.8s ease-in-out infinite; }
     @keyframes barShimmer { 0%{left:-60%} 65%{left:120%} 100%{left:120%} }
+    #mini-thumb { position: absolute; top: 50%; left: 0%; width: 0px; height: 0px; border-radius: 50%; background: var(--scrubber-notch); box-shadow: 0 1px 4px rgba(0,0,0,0.25); transform: translate(-50%, -50%); pointer-events: none; z-index: 3; transition: width 0.18s cubic-bezier(0.34,1.56,0.64,1), height 0.18s cubic-bezier(0.34,1.56,0.64,1), background 0.35s; }
+    .mini-bar-track:hover #mini-thumb, .mini-bar-track.seeking #mini-thumb, .mini-bar-track.bar-expanded #mini-thumb { width: 11px; height: 11px; }
+    #mini-thumb.dragging { width: 11px !important; height: 11px !important; }
     .mini-text-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px 9px; }
-    .mini-name { font-size: .65rem; color: var(--primary-dark); font-weight: 600; }
-    .mini-time { font-size: .65rem; color: #9ca3af; font-variant-numeric: tabular-nums; }
+    .mini-name { font-size: .65rem; color: var(--primary-dark); font-weight: 600; transition: color 0.35s; }
+    .mini-time { font-size: .65rem; color: var(--muted-2); font-variant-numeric: tabular-nums; transition: color 0.35s; }
+
+    .sticky-mute-btn.muted { opacity: 1 !important; color: #e05555 !important; }
 
     /* ── FILTER ── */
     .filter-wrap { margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
     .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-    .filter-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--white); border: 1.5px solid transparent; border-radius: 30px; padding: 5px 12px 5px 8px; box-shadow: 0 2px 8px rgba(0,0,0,.06); font-size: .78rem; font-weight: 500; font-family: inherit; cursor: pointer; color: var(--text); transition: all 0.2s ease; }
-    .filter-chip:hover { box-shadow: 0 3px 12px rgba(0,0,0,.12); transform: translateY(-1px); }
+    .filter-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--chip-bg); border: 1.5px solid transparent; border-radius: 30px; padding: 5px 12px 5px 8px; box-shadow: var(--chip-shadow); font-size: .78rem; font-weight: 500; font-family: inherit; cursor: pointer; color: var(--text); transition: all 0.2s ease; }
+    .filter-chip:hover { box-shadow: 0 3px 12px rgba(0,0,0,.18); transform: translateY(-1px); }
     .filter-chip.active { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); box-shadow: 0 4px 14px rgba(26,74,68,.3); }
     .filter-chip.active .filter-dot { border-color: rgba(255,255,255,.4) !important; }
     .filter-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
@@ -463,7 +910,7 @@
     @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    footer { background: var(--primary-dark); text-align: center; padding: 24px 20px; color: rgba(255,255,255,.45); font-size: .8rem; letter-spacing: .05em; }
+    footer { background: var(--footer-bg); text-align: center; padding: 24px 20px; color: rgba(255,255,255,.45); font-size: .8rem; letter-spacing: .05em; transition: background 0.35s; }
     footer strong { color: var(--gold); }
 
     @media (max-width: 640px) {
@@ -483,6 +930,34 @@
 <body>
 
 <header>
+  <!-- EXACT IMAGE TOGGLE: wide pill, label inside, dark sphere thumb -->
+  <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Byt tema">
+    <div class="ios-track" id="ios-track">
+      <span class="ios-track-label" id="toggle-label">LJUST<br>LÄGE</span>
+      <div class="ios-thumb" id="ios-thumb">
+        <!-- Sun icon — shown in light mode -->
+        <span class="ios-thumb-icon ios-thumb-sun">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/>
+            <line x1="12" y1="2"  x2="12" y2="5"/>
+            <line x1="12" y1="19" x2="12" y2="22"/>
+            <line x1="4.22" y1="4.22"  x2="6.34" y2="6.34"/>
+            <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
+            <line x1="2"  y1="12" x2="5"  y2="12"/>
+            <line x1="19" y1="12" x2="22" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
+            <line x1="17.66" y1="6.34"  x2="19.78" y2="4.22"/>
+          </svg>
+        </span>
+        <!-- Moon icon — shown in dark mode -->
+        <span class="ios-thumb-icon ios-thumb-moon">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="white" stroke="none">
+            <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+  </button>
   <div class="ornament">
     <div class="orn-line l"></div><div class="orn-dot"></div>
     <div class="orn-diamond"></div><div class="orn-dot"></div>
@@ -501,9 +976,12 @@
   </div>
 </header>
 
+<!-- CHANGE 1: Backdrop for mobile moon tooltip -->
+<div class="moon-tooltip-backdrop" id="moon-tooltip-backdrop"></div>
+
 <div class="wave">
   <svg viewBox="0 0 1440 56" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-    <path d="M0,28 C400,65 1040,-9 1440,28 L1440,0 L0,0 Z" fill="#24645d"/>
+    <path id="wave-path" d="M0,28 C400,65 1040,-9 1440,28 L1440,0 L0,0 Z" fill="#24645d"/>
   </svg>
 </div>
 
@@ -689,20 +1167,71 @@
     window.scrollTo({ top: y, behavior: 'smooth' });
   }
 
+  /* ══════════════════════════════════════════
+     CHANGE 1: Mobile moon tooltip — full-screen slide-up
+  ══════════════════════════════════════════ */
+  const backdrop = document.getElementById('moon-tooltip-backdrop');
+  let _activeMoonEl = null;
+
+  function isMobile() { return window.innerWidth <= 640; }
+
+  function openMoonTooltip(wrapEl) {
+    if (!isMobile()) return;
+    closeMoonTooltip(false);
+    const tip = wrapEl.querySelector('.moon-tooltip, .today-moon-tooltip');
+    if (!tip) return;
+    _activeMoonEl = { wrap: wrapEl, tip };
+    backdrop.classList.add('visible');
+    backdrop.classList.remove('hiding');
+    tip.classList.add('visible');
+    tip.classList.remove('hiding');
+  }
+
+  function closeMoonTooltip(animate = true) {
+    if (!_activeMoonEl) return;
+    const { tip } = _activeMoonEl;
+    if (animate) {
+      tip.classList.add('hiding');
+      backdrop.classList.add('hiding');
+      backdrop.classList.remove('visible');
+      tip.addEventListener('animationend', () => {
+        tip.classList.remove('visible', 'hiding');
+      }, { once: true });
+      backdrop.addEventListener('animationend', () => {
+        backdrop.classList.remove('hiding');
+      }, { once: true });
+    } else {
+      tip.classList.remove('visible', 'hiding');
+      backdrop.classList.remove('visible', 'hiding');
+    }
+    // remove active from wrap
+    document.querySelectorAll('.moon-wrap.active, .today-moon-wrap.active').forEach(el => el.classList.remove('active'));
+    _activeMoonEl = null;
+  }
+
+  backdrop.addEventListener('click', () => closeMoonTooltip(true));
+
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.surah-cell') && !e.target.closest('.dcm-surahs'))
       document.querySelectorAll('.tooltip-box.visible, .dcm-tooltip.visible').forEach(el => el.classList.remove('visible'));
-    if (!e.target.closest('.moon-wrap') && !e.target.closest('.today-moon-wrap'))
-      document.querySelectorAll('.moon-wrap.active, .today-moon-wrap.active').forEach(el => el.classList.remove('active'));
-  });
 
-  document.addEventListener('click', (e) => {
     const moonWrap = e.target.closest('.moon-wrap, .today-moon-wrap');
     if (moonWrap) {
-      const isActive = moonWrap.classList.contains('active');
-      document.querySelectorAll('.moon-wrap.active, .today-moon-wrap.active').forEach(el => el.classList.remove('active'));
-      if (!isActive) moonWrap.classList.add('active');
+      if (isMobile()) {
+        openMoonTooltip(moonWrap);
+      } else {
+        const isActive = moonWrap.classList.contains('active');
+        document.querySelectorAll('.moon-wrap.active, .today-moon-wrap.active').forEach(el => el.classList.remove('active'));
+        if (!isActive) moonWrap.classList.add('active');
+      }
       e.stopPropagation();
+      return;
+    }
+
+    // Close moon tooltips on outside click (desktop)
+    if (!e.target.closest('.moon-wrap') && !e.target.closest('.today-moon-wrap')) {
+      document.querySelectorAll('.moon-wrap.active, .today-moon-wrap.active').forEach(el => el.classList.remove('active'));
+      if (isMobile()) closeMoonTooltip(true);
     }
   });
 
@@ -720,10 +1249,9 @@
     const moonClass = isOddNight ? 'moon-icon moon-odd' : 'moon-icon';
     const defaultMoonText = 'Profeten ﷺ sade: "Den som står upp i nattbön under Laylatul-Qadr med tro och i hopp om belöning får sina tidigare synder förlåtna." [al-Bukhari och Muslim]';
     const thisMoonText = row.moonText || defaultMoonText;
-    // UPDATED: proper SVG crescent + gold-tooltip for odd nights
     const moonFill = isOddNight ? '#fff2c0' : 'white';
     const tooltipClass = isOddNight ? 'moon-tooltip gold-tooltip' : 'moon-tooltip';
-    const moonIcon = isLastTen ? `<span class="moon-wrap"><span class="${moonClass}"><svg width="12" height="12" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" fill="${moonFill}"/></svg></span><span class="${tooltipClass}">${thisMoonText}</span></span>` : '';
+    const moonIcon = isLastTen ? `<span class="moon-wrap"><span class="${moonClass}"><svg width="12" height="12" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" fill="${moonFill}"/></svg></span><span class="${tooltipClass}"><span class="moon-tooltip-title">🌙 Laylatul-Qadr</span>${thisMoonText}</span></span>` : '';
     tr.innerHTML = `
       <td class="td-dag">${row.day}</td>
       <td class="td-sidor">${row.sidor}</td>
@@ -762,10 +1290,9 @@
     const moonClassM = isOddNightM ? 'moon-icon moon-odd' : 'moon-icon';
     const defaultMoonTextM = 'Profeten ﷺ sade: "Den som står upp i nattbön under Laylatul-Qadr med tro och i hopp om belöning får sina tidigare synder förlåtna." [al-Bukhari och Muslim]';
     const thisMoonTextM = row.moonText || defaultMoonTextM;
-    // UPDATED: proper SVG crescent + gold-tooltip for odd nights
     const moonFillM = isOddNightM ? '#fff2c0' : 'white';
     const tooltipClassM = isOddNightM ? 'moon-tooltip gold-tooltip' : 'moon-tooltip';
-    const moonSpan = isLastTenM ? `<span class='moon-wrap' style='margin-left:5px;'><span class='${moonClassM}'><svg width='11' height='11' viewBox='0 0 24 24'><path d='M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z' fill='${moonFillM}'/></svg></span><span class='${tooltipClassM}' style='right:auto;left:0;'>${thisMoonTextM}</span></span>` : '';
+    const moonSpan = isLastTenM ? `<span class='moon-wrap' style='margin-left:5px;'><span class='${moonClassM}'><svg width='11' height='11' viewBox='0 0 24 24'><path d='M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z' fill='${moonFillM}'/></svg></span><span class='${tooltipClassM}' style='right:auto;left:0;'><span class="moon-tooltip-title">🌙 Laylatul-Qadr</span>${thisMoonTextM}</span></span>` : '';
     card.innerHTML = `
       <div class="dcm-top">
         <div class="dcm-dag ${isToday ? 'today-day' : ''}">${row.day}</div>
@@ -817,13 +1344,11 @@
       const moonWrap = document.createElement('span');
       moonWrap.className = 'today-moon-wrap';
       moonWrap.style.marginLeft = '8px';
-      // UPDATED: odd class + proper SVG crescent + gold fill
       const oddClass = isTodayOdd ? ' moon-odd-today' : '';
       const todayMoonFill = isTodayOdd ? '#fff2c0' : 'white';
-      moonWrap.innerHTML = `<span class="today-moon-icon${oddClass}"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" fill="${todayMoonFill}"/></svg></span><span class="today-moon-tooltip">${todayMoonText}</span>`;
+      moonWrap.innerHTML = `<span class="today-moon-icon${oddClass}"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" fill="${todayMoonFill}"/></svg></span><span class="today-moon-tooltip"><span class="moon-tooltip-title">🌙 Laylatul-Qadr</span>${todayMoonText}</span>`;
       dateEl.parentNode.appendChild(moonWrap);
 
-      // Option B: hadith gold left-border quote inside the dark header
       const headerContent = document.querySelector('.today-card-header-content');
       const hadithDiv = document.createElement('div');
       hadithDiv.className = 'today-hadith-inline';
@@ -836,7 +1361,6 @@
     document.getElementById('today-pages').textContent = 'Sidor ' + todayData.sidor;
     document.getElementById('today-surahs-name').textContent = todayData.surahs;
     document.getElementById('today-surahs-ref').textContent = todayData.tooltip;
-
 
     const avatarPulseColors = {
       abdurrahman:'rgba(232,99,10,0.55)', saed:'rgba(212,168,0,0.55)', noor:'rgba(41,128,185,0.55)',
@@ -878,15 +1402,37 @@
   let _stickyScrollTimer = null;
   let _activeDatum = null;
 
-  const PLAY_ICON  = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="7,3 21,12 7,21" transform="translate(1,0)"/></svg>`;
-  const PAUSE_ICON = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="3" width="4" height="18"/><rect x="14" y="3" width="4" height="18"/></svg>`;
-  const SPIN_ICON  = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" style="animation:spin 0.9s linear infinite"><path d="M12 2a10 10 0 1 0 10 10"/></svg>`;
+  /* CHANGE 3 — reuse same spring+ripple for table play buttons */
+  const PLAY_SVG  = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:block;margin-left:1px"><polygon points="7,3 21,12 7,21"/></svg>`;
+  const PAUSE_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:block"><rect x="6" y="3" width="4" height="18"/><rect x="14" y="3" width="4" height="18"/></svg>`;
+  const SPIN_SVG  = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" style="animation:spin 0.9s linear infinite;display:block"><path d="M12 2a10 10 0 1 0 10 10"/></svg>`;
+
+  function triggerPlayBtnSpring(btn) {
+    // Remove class, force reflow, re-add for restart
+    btn.classList.remove('springing');
+    void btn.offsetWidth;
+    btn.classList.add('springing');
+    btn.addEventListener('animationend', () => btn.classList.remove('springing'), { once: true });
+    // Ripple
+    const rip = document.createElement('span');
+    rip.className = 'play-btn-ripple';
+    btn.appendChild(rip);
+    rip.addEventListener('animationend', () => rip.remove(), { once: true });
+  }
 
   function updateStickyPlayBtn(isPlaying) {
     const btn = document.getElementById('sticky-play-btn');
     if (!btn) return;
-    if (isPlaying) { btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="3" width="4" height="18"/><rect x="14" y="3" width="4" height="18"/></svg>'; btn.classList.add('red'); }
-    else { btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="7,3 21,12 7,21" transform="translate(1,0)"/></svg>'; btn.classList.remove('red'); }
+    btn.classList.remove('springing');
+    void btn.offsetWidth;
+    btn.classList.add('springing');
+    btn.addEventListener('animationend', () => btn.classList.remove('springing'), { once: true });
+    const rip = document.createElement('span');
+    rip.className = 'spm-ripple';
+    btn.appendChild(rip);
+    rip.addEventListener('animationend', () => rip.remove(), { once: true });
+    if (isPlaying) { btn.classList.add('red'); }
+    else           { btn.classList.remove('red'); }
   }
 
   function setBtns(datum, icon, isPlaying) {
@@ -902,8 +1448,12 @@
     btn.className = 'play-btn';
     btn.setAttribute('data-datum', datum);
     btn.title = 'Spela upp recitation';
-    btn.innerHTML = PLAY_ICON;
-    btn.addEventListener('click', e => { e.stopPropagation(); toggleAudio(datum); });
+    btn.innerHTML = PLAY_SVG;
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      triggerPlayBtnSpring(btn);   // CHANGE 3: spring on table btn click
+      toggleAudio(datum);
+    });
     return btn;
   }
 
@@ -929,11 +1479,13 @@
     const sFill  = document.getElementById('sticky-fill');
     const sThumb = document.getElementById('sticky-thumb');
     const mFill  = document.getElementById('mini-fill');
+    const mThumb = document.getElementById('mini-thumb');
     if (sCur)   sCur.textContent   = fmtTime(currentTime);
     if (sDur)   sDur.textContent   = fmtTime(duration);
     if (sFill)  sFill.style.width  = pct + '%';
     if (sThumb) sThumb.style.left  = pct + '%';
     if (mFill)  mFill.style.width  = pct + '%';
+    if (mThumb) mThumb.style.left  = pct + '%';
     const mTime = document.getElementById('mini-time-display');
     if (mTime) mTime.textContent = fmtTime(currentTime) + ' / ' + fmtTime(duration);
   }
@@ -950,22 +1502,101 @@
   }, { passive: true });
 
   function navigateTo(datum) {
-    if (_activeDatum && audioState[_activeDatum]) { audioState[_activeDatum].pause(); setBtns(_activeDatum, PLAY_ICON, false); closePlayer(_activeDatum); }
+    if (_activeDatum && audioState[_activeDatum]) { audioState[_activeDatum].pause(); setBtns(_activeDatum, PLAY_SVG, false); closePlayer(_activeDatum); }
     toggleAudio(datum);
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    const seekEl = document.getElementById('sticky-seek');
-    if (seekEl) seekEl.addEventListener('click', e => {
+  function makeDraggableSeek(trackEl, thumbEl) {
+    if (!trackEl) return;
+    let _dragging = false;
+    let _collapseTimer = null;
+    const fillEl = trackEl.id === 'sticky-seek'
+      ? document.getElementById('sticky-fill')
+      : document.getElementById('mini-fill');
+
+    function getPct(clientX) {
+      const rect = trackEl.getBoundingClientRect();
+      return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    }
+    function applyPct(pct) {
+      if (thumbEl) thumbEl.style.left = (pct * 100) + '%';
+      const mt = trackEl.querySelector('#mini-thumb');
+      if (mt) mt.style.left = (pct * 100) + '%';
+      if (fillEl) fillEl.style.width = (pct * 100) + '%';
+    }
+    function expand() { clearTimeout(_collapseTimer); trackEl.classList.add('bar-expanded'); }
+    function scheduleCollapse() {
+      clearTimeout(_collapseTimer);
+      _collapseTimer = setTimeout(() => { if (!_dragging) trackEl.classList.remove('bar-expanded'); }, 800);
+    }
+    function commitSeek(pct) {
       if (!_activeDatum || !audioState[_activeDatum]) return;
       const audio = audioState[_activeDatum];
       if (!audio.duration) return;
-      const rect = e.currentTarget.getBoundingClientRect();
-      const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      audio._seekLock = true;
       audio.currentTime = pct * audio.duration;
       updatePlayerUI(_activeDatum, audio.currentTime, audio.duration);
+      clearTimeout(audio._seekLockTimer);
+      audio._seekLockTimer = setTimeout(() => { audio._seekLock = false; }, 300);
+    }
+    trackEl.addEventListener('pointerdown', e => {
+      if (!_activeDatum || !audioState[_activeDatum]) return;
+      const audio = audioState[_activeDatum];
+      if (!audio.duration) return;
+      _dragging = true; audio._seekLock = true;
+      trackEl.setPointerCapture(e.pointerId);
+      trackEl.classList.add('seeking');
+      if (thumbEl) thumbEl.classList.add('dragging');
+      expand(); applyPct(getPct(e.clientX));
+      e.stopPropagation(); e.preventDefault();
+    }, { passive: false });
+    trackEl.addEventListener('pointermove', e => {
+      if (!_dragging) return;
+      const pct = getPct(e.clientX); applyPct(pct);
+      if (_activeDatum && audioState[_activeDatum]?.duration) {
+        const scrubTime = pct * audioState[_activeDatum].duration;
+        const cur = document.getElementById('sticky-cur');
+        const mTime = document.getElementById('mini-time-display');
+        if (cur) cur.textContent = fmtTime(scrubTime);
+        if (mTime) mTime.textContent = fmtTime(scrubTime) + ' / ' + fmtTime(audioState[_activeDatum].duration);
+      }
       e.stopPropagation();
     });
+    trackEl.addEventListener('pointerup', e => {
+      if (!_dragging) return;
+      _dragging = false; trackEl.classList.remove('seeking');
+      if (thumbEl) thumbEl.classList.remove('dragging');
+      trackEl.releasePointerCapture(e.pointerId);
+      commitSeek(getPct(e.clientX)); scheduleCollapse();
+      e.stopPropagation();
+    });
+    trackEl.addEventListener('pointercancel', () => {
+      _dragging = false; trackEl.classList.remove('seeking');
+      if (thumbEl) thumbEl.classList.remove('dragging'); scheduleCollapse();
+    });
+    trackEl.addEventListener('pointerleave', () => { if (!_dragging) scheduleCollapse(); });
+    trackEl.addEventListener('pointerenter', () => { expand(); });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const seekEl  = document.getElementById('sticky-seek');
+    const thumbEl = document.getElementById('sticky-thumb');
+    makeDraggableSeek(seekEl, thumbEl);
+    const miniTrack = document.querySelector('.mini-bar-track');
+    const miniThumb = document.getElementById('mini-thumb');
+    if (miniTrack) makeDraggableSeek(miniTrack, miniThumb);
+
+    const muteBtn = document.getElementById('sticky-mute');
+    if (muteBtn) muteBtn.addEventListener('click', e => {
+      const isMuted = muteBtn.classList.toggle('muted');
+      Object.values(audioState).forEach(a => { a.muted = isMuted; });
+      window._globalMuted = isMuted;
+      document.getElementById('mute-icon-on').style.display  = isMuted ? 'none' : '';
+      document.getElementById('mute-icon-off').style.display = isMuted ? ''     : 'none';
+      muteBtn.style.opacity = isMuted ? '1' : '';
+      e.stopPropagation();
+    });
+
     const playBtn = document.getElementById('sticky-play-btn');
     if (playBtn) playBtn.addEventListener('click', e => { if (!_activeDatum) return; toggleAudio(_activeDatum); e.stopPropagation(); });
     const prevBtn = document.getElementById('sticky-prev');
@@ -1041,25 +1672,26 @@
 
   function toggleAudio(datum) {
     Object.keys(audioState).forEach(d => {
-      if (d !== datum && audioState[d] && !audioState[d].paused) { audioState[d].pause(); closePlayer(d); setBtns(d, PLAY_ICON, false); }
+      if (d !== datum && audioState[d] && !audioState[d].paused) { audioState[d].pause(); closePlayer(d); setBtns(d, PLAY_SVG, false); }
     });
     if (!audioState[datum]) {
       const a = new Audio();
+      a.muted = !!window._globalMuted;
       a.src = audioUrls[datum];
-      a.addEventListener('waiting',  () => setBtns(datum, SPIN_ICON, true));
-      a.addEventListener('playing',  () => { setBtns(datum, PAUSE_ICON, true); openPlayer(datum); });
-      a.addEventListener('timeupdate', () => updatePlayerUI(datum, a.currentTime, a.duration));
+      a.addEventListener('waiting',  () => setBtns(datum, SPIN_SVG, true));
+      a.addEventListener('playing',  () => { setBtns(datum, PAUSE_SVG, true); openPlayer(datum); });
+      a.addEventListener('timeupdate', () => { if (!a._seekLock) updatePlayerUI(datum, a.currentTime, a.duration); });
       a.addEventListener('loadedmetadata', () => updatePlayerUI(datum, a.currentTime, a.duration));
-      a.addEventListener('ended', () => { closePlayer(datum); setBtns(datum, PLAY_ICON, false); updatePlayerUI(datum, 0, a.duration); });
+      a.addEventListener('ended', () => { closePlayer(datum); setBtns(datum, PLAY_SVG, false); updatePlayerUI(datum, 0, a.duration); });
       audioState[datum] = a;
     }
     const audio = audioState[datum];
     if (audio.paused) {
-      setBtns(datum, SPIN_ICON, true);
-      audio.play().then(() => {}).catch(err => { console.warn('Play failed:', err); setBtns(datum, PLAY_ICON, false); });
+      setBtns(datum, SPIN_SVG, true);
+      audio.play().then(() => {}).catch(err => { console.warn('Play failed:', err); setBtns(datum, PLAY_SVG, false); });
     } else {
       audio.pause();
-      setBtns(datum, PLAY_ICON, false);
+      setBtns(datum, PLAY_SVG, false);
       updateStickyPlayBtn(false);
     }
   }
@@ -1163,6 +1795,46 @@
   }
   startIshaCountdown();
 
+  // ══════════════════════════════════════════
+  // CHANGE 2 — iPhone toggle theme
+  // ══════════════════════════════════════════
+  const THEME_KEY = 'tarawih-theme';
+  const _root = document.documentElement;
+
+  function _applyTheme(theme) {
+    _root.setAttribute('data-theme', theme);
+    const label    = document.getElementById('toggle-label');
+    const wavePath = document.getElementById('wave-path');
+    if (theme === 'dark') {
+      if (label)    label.innerHTML = 'MÖRKT<br>LÄGE';
+      if (wavePath) wavePath.setAttribute('fill', '#131f1b');
+    } else {
+      if (label)    label.innerHTML = 'LJUST<br>LÄGE';
+      if (wavePath) wavePath.setAttribute('fill', '#24645d');
+    }
+    localStorage.setItem(THEME_KEY, theme);
+  }
+
+  function toggleTheme() {
+    const next = _root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    // Trigger thumb squish via a transient class
+    const thumb = document.getElementById('ios-thumb');
+    if (thumb) {
+      thumb.style.transition = 'transform 0.36s cubic-bezier(0.34,1.56,0.64,1), width 0.10s ease';
+    }
+    _applyTheme(next);
+  }
+
+  (function() {
+    const saved = localStorage.getItem(THEME_KEY);
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    _applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+  })();
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    if (!localStorage.getItem(THEME_KEY)) _applyTheme(e.matches ? 'dark' : 'light');
+  });
+
   // ── FILTER ──
   let activeFilter = null;
   function toggleFilter(imam) {
@@ -1234,21 +1906,47 @@
         <div class="sticky-seek-thumb" id="sticky-thumb"></div>
       </div>
     </div>
+    <!-- CHANGE 4: Bigger buttons, more spacing, same-size mute -->
     <div class="sticky-controls">
-      <button class="sticky-ctrl-btn" id="sticky-prev" title="Föregående dag">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+      <div class="sticky-ctrl-left">
+        <button class="sticky-ctrl-btn" id="sticky-prev" title="Föregående dag">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+        </button>
+      </div>
+      <button class="sticky-play-main" id="sticky-play-btn" aria-label="Spela/Pausa">
+        <span class="spm-icon-wrap" aria-hidden="true">
+          <svg class="spm-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="7,3 21,12 7,21"/>
+          </svg>
+          <svg class="spm-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="3" width="4" height="18" rx="1.5"/>
+            <rect x="14" y="3" width="4" height="18" rx="1.5"/>
+          </svg>
+        </span>
       </button>
-      <button class="sticky-play-main" id="sticky-play-btn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="7,3 21,12 7,21" transform="translate(1,0)"/></svg>
-      </button>
-      <button class="sticky-ctrl-btn" id="sticky-next" title="Nästa dag">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 6h-2v12h2zm-3.5 6L6 6v12z"/></svg>
-      </button>
+      <div class="sticky-ctrl-right">
+        <button class="sticky-ctrl-btn" id="sticky-next" title="Nästa dag">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 6h-2v12h2zm-3.5 6L6 6v12z"/></svg>
+        </button>
+        <button class="sticky-ctrl-btn sticky-mute-btn" id="sticky-mute" title="Ljud av/på">
+          <svg id="mute-icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          </svg>
+          <svg id="mute-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <line x1="23" y1="9" x2="17" y2="15"/>
+            <line x1="17" y1="9" x2="23" y2="15"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
   <div class="player-mini">
     <div class="mini-bar-track">
       <div class="mini-bar-fill" id="mini-fill"></div>
+      <div id="mini-thumb"></div>
     </div>
     <div class="mini-text-row">
       <span class="mini-name" id="mini-name-display">–</span>
