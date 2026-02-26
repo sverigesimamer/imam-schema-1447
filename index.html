@@ -1166,6 +1166,14 @@
       background: linear-gradient(to top, rgba(150,100,0,0.55), rgba(190,138,10,0.85));
     }
 
+
+    /* ── Sound wave CSS-animation (iOS fallback) ── */
+    @keyframes swPulse {
+      0%, 100% { transform: scaleY(var(--sw-floor)); }
+      50%       { transform: scaleY(var(--sw-peak));  }
+    }
+    .sw-bar--animate { animation: swPulse var(--sw-dur, 0.9s) ease-in-out infinite; }
+
     /* ── MINI PLAYER ── */
     .player-mini {
       position: absolute; bottom: 0; left: 0; right: 0;
@@ -1711,8 +1719,7 @@
 
 <script>
   // ── iOS-detektering — Web Audio API hindrar bakgrundsuppspelning på iOS ──
-  window._isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  window._isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !!navigator.maxTouchPoints;
 
   // ── Hadith-texter ──────────────────────────────────────────────
   const H_STAND_UP        = 'standUp';
@@ -2765,8 +2772,7 @@
         openPlayer(row.datum);
         // Unmute innan analyser kopplas — annars kan ljudet förbli tyst
         if (!window._globalMuted) a.muted = false;
-        if (!window._isIOS && window._connectAnalyser) window._connectAnalyser(row.datum, a);
-        if (!window._isIOS && window._startWaveDraw)   window._startWaveDraw();
+        if (window._connectAnalyser) window._connectAnalyser(row.datum, a);
       });
       a.addEventListener('pause', () => {
         setBtns(row.datum, PLAY_SVG, false);
@@ -2849,110 +2855,140 @@
     syncAllFavBtns();
     updateFavChip();
 
-    // ══ SOUND WAVE — Web Audio API ══
-    // Skapar barer, kopplar en AnalyserNode till varje Audio-element
-    // och driver bararna direkt från frekvensdata i realtid.
+    // ══ SOUND WAVE ══
     (function() {
       const waveEl = document.getElementById('sp-soundwave');
       if (!waveEl) return;
 
       const BAR_COUNT = 17;
+      // Vilstransform per stapel — liten organisk profil
+      const FLOOR = [0.06,0.07,0.08,0.09,0.10,0.11,0.12,0.13,0.12,0.11,0.10,0.09,0.08,0.07,0.06,0.06,0.05];
+      // CSS-animation peak/tid för iOS-fallback
+      const PEAK  = [0.35,0.45,0.55,0.65,0.75,0.85,0.90,0.95,0.90,0.85,0.75,0.65,0.55,0.45,0.35,0.30,0.25];
+      const DUR   = [1.1, 0.9, 0.8, 0.95,0.75,0.85,0.70,0.80,0.70,0.85,0.75,0.95,0.80,0.90,1.1, 1.0, 1.15];
+      const DELAY = [0,   0.1, 0.2, 0.05,0.3, 0.15,0.4, 0.0, 0.4, 0.15,0.3, 0.05,0.2, 0.1, 0.0, 0.25,0.35];
+
       const bars = [];
-
-      // Bergprofil — grundhöjd per bar (används som golvnivå vid tystnad)
-      const floorProfile = [0.06,0.07,0.08,0.09,0.10,0.11,0.12,0.13,0.12,0.11,0.10,0.09,0.08,0.07,0.06,0.06,0.05];
-
       for (let i = 0; i < BAR_COUNT; i++) {
-        const bar = document.createElement('div');
-        bar.className = 'sw-bar';
-        bar.style.transform = 'scaleY(' + floorProfile[i] + ')';
-        waveEl.appendChild(bar);
-        bars.push(bar);
+        const b = document.createElement('div');
+        b.className = 'sw-bar';
+        b.style.setProperty('--sw-floor', FLOOR[i]);
+        b.style.setProperty('--sw-peak',  PEAK[i]);
+        b.style.setProperty('--sw-dur',   DUR[i] + 's');
+        b.style.animationDelay = DELAY[i] + 's';
+        b.style.transform = 'scaleY(' + FLOOR[i] + ')';
+        waveEl.appendChild(b);
+        bars.push(b);
       }
 
-      // AudioContext och analyser per datum
-      const _audioCtx = {};     // AudioContext per datum
-      const _analyser = {};     // AnalyserNode per datum
-      const _source   = {};     // MediaElementSourceNode per datum
-      let _rafId = null;
-      let _isDrawing = false;
+      // iOS: Web Audio API blockeras av Safari — använd CSS-animation
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-      // Exponera AudioContext-map och resume-funktion globalt
-      window._audioCtxMap = _audioCtx;
-      window._resumeAudioCtx = function(datum) {
-        const ctx = _audioCtx[datum];
-        if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
-      };
+      let ctx = null, analyser = null, rafId = null, running = false;
+      const sources = {};
 
-      // Koppla Web Audio API till ett Audio-element
-      window._connectAnalyser = function(datum, audioEl) {
-        if (_source[datum]) {
-          // Redan kopplad — se till att AudioContext är igång
-          const ctx = _audioCtx[datum];
-          if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
-          return;
-        }
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const src = ctx.createMediaElementSource(audioEl);
-          const analyser = ctx.createAnalyser();
-          analyser.fftSize = 256;
-          analyser.smoothingTimeConstant = 0.78;
-          src.connect(analyser);
-          analyser.connect(ctx.destination);
-          _audioCtx[datum] = ctx;
-          _analyser[datum] = analyser;
-          _source[datum]   = src;
-          if (ctx.state === 'suspended') ctx.resume().catch(() => {});
-        } catch(e) {
-          console.warn('Web Audio API ej tillgänglig:', e);
-        }
-      };
+      function startCSSWave() {
+        bars.forEach(b => b.classList.add('sw-bar--animate'));
+      }
+      function stopCSSWave() {
+        bars.forEach((b, i) => {
+          b.classList.remove('sw-bar--animate');
+          b.style.transform = 'scaleY(' + FLOOR[i] + ')';
+        });
+      }
 
-      // Mappa FFT-bins jämnt fördelade på BAR_COUNT barer
-      // Fokuserar på låg-till-mellanfrekvens (Quran-recitation sitter 80–3000 Hz)
-      function drawFrame() {
-        _rafId = requestAnimationFrame(drawFrame);
-        if (!_activeDatum || !_analyser[_activeDatum]) {
-          // Ingen analyser — sjunk ner till golv
-          bars.forEach((b, i) => { b.style.transform = 'scaleY(' + floorProfile[i] + ')'; });
-          return;
-        }
-        const analyser = _analyser[_activeDatum];
-        const bufLen = analyser.frequencyBinCount; // = fftSize/2 = 128
-        const data   = new Uint8Array(bufLen);
-        analyser.getByteFrequencyData(data);
+      // Håller nuvarande visningsvärde per stapel för mjuk decay
+      const displayed = new Float32Array(BAR_COUNT).fill(0);
 
-        // Använd bin 2–80 (ca 40–3100 Hz vid 44.1kHz) för talröst
-        const binStart = 2;
-        const binEnd   = Math.min(80, bufLen - 1);
-        const usable   = binEnd - binStart;
+      function draw() {
+        if (!running) return;
+        rafId = requestAnimationFrame(draw);
+
+        // Frekvensdata direkt från filen — varje bin = ett frekvensband
+        const freq = new Uint8Array(analyser.frequencyBinCount); // 512 bins
+        analyser.getByteFrequencyData(freq);
+
+        // Quran-recitation sitter i 80–4000 Hz.
+        // sampleRate ≈ 44100 → binWidth = 44100/1024 ≈ 43 Hz/bin
+        // bin 2  ≈  86 Hz   bin 93 ≈ 4000 Hz
+        // Logaritmisk fördelning: komprimerar bas, öppnar mellanregister
+        const LO  = 2;   // ~86 Hz
+        const HI  = 93;  // ~4000 Hz
+        const logLo = Math.log2(LO);
+        const logHi = Math.log2(HI);
+        const N = freq.length;
 
         for (let i = 0; i < BAR_COUNT; i++) {
-          // Varje bar mappar till ett frekvensband
-          const binIdx = binStart + Math.round((i / (BAR_COUNT - 1)) * usable);
-          const raw    = data[binIdx] / 255; // 0–1
+          const t   = i / (BAR_COUNT - 1);
+          const bin = Math.round(Math.pow(2, logLo + t * (logHi - logLo)));
 
-          // Bergform-multiplikator: mitt = 1.0, kanter = 0.55
-          const centerDist = Math.abs(i - (BAR_COUNT - 1) / 2) / ((BAR_COUNT - 1) / 2);
-          const shapeMul   = 1.0 - centerDist * 0.45;
+          // Medelvärde över 3 grannbins — minskar spikigt brus
+          let sum = 0, count = 0;
+          for (let d = -1; d <= 1; d++) {
+            const b = Math.min(N - 1, Math.max(0, bin + d));
+            sum += freq[b]; count++;
+          }
+          const raw = (sum / count) / 255; // 0..1
 
-          // Skala till en synlig höjd: golv + signal
-          const scale = floorProfile[i] + raw * 0.92 * shapeMul;
-          bars[i].style.transform = 'scaleY(' + Math.min(scale, 1.0) + ')';
+          // Snabb attack, långsam decay — ser naturligt ut utan fördröjning
+          const prev = displayed[i];
+          const next = raw > prev
+            ? prev + (raw - prev) * 0.9   // attack: nästan direkt
+            : prev + (raw - prev) * 0.15; // decay: ~6 frames
+          displayed[i] = next;
+
+          const val = Math.max(next, FLOOR[i]);
+          bars[i].style.transform = 'scaleY(' + Math.min(val, 1.0) + ')';
         }
       }
 
-      window._startWaveDraw = function() {
-        if (_isDrawing) return;
-        _isDrawing = true;
-        drawFrame();
+      // Skapar AudioContext direkt i user gesture
+      window._primeAudioCtx = function() {
+        if (isIOS || ctx) return;
+        try {
+          ctx = new (window.AudioContext || window.webkitAudioContext)();
+          analyser = ctx.createAnalyser();
+          analyser.fftSize = 1024;
+          analyser.smoothingTimeConstant = 0.0; // ingen inbyggd smoothing — hanteras i draw()
+          analyser.connect(ctx.destination);
+        } catch(e) { ctx = null; }
+      };
+
+      window._connectAnalyser = function(datum, audioEl) {
+        if (isIOS) { startCSSWave(); return; }
+        try {
+          if (!ctx) {
+            ctx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = ctx.createAnalyser();
+            analyser.fftSize = 1024;
+            analyser.smoothingTimeConstant = 0.0;
+            analyser.connect(ctx.destination);
+          }
+          if (!sources[datum]) {
+            const src = ctx.createMediaElementSource(audioEl);
+            src.connect(analyser);
+            sources[datum] = src;
+          }
+          const startDraw = () => { running = true; draw(); };
+          if (ctx.state === 'suspended') {
+            ctx.resume().then(startDraw).catch(() => startCSSWave());
+          } else {
+            startDraw();
+          }
+        } catch(e) { startCSSWave(); }
       };
 
       window._stopWaveDraw = function() {
-        _isDrawing = false;
-        cancelAnimationFrame(_rafId);
-        bars.forEach((b, i) => { b.style.transform = 'scaleY(' + floorProfile[i] + ')'; });
+        running = false;
+        cancelAnimationFrame(rafId);
+        rafId = null;
+        displayed.fill(0);
+        stopCSSWave();
+      };
+
+      window._resumeAudioCtx = function() {
+        if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
       };
     })();
 
@@ -3260,11 +3296,11 @@
         a.src = audioUrls[datum];
         a.addEventListener('waiting',  () => setBtns(datum, SPIN_SVG, true));
         a.addEventListener('playing',  () => {
-          if (a._stopping) return; // stopp begärdes — ignorera playing-event
+          if (a._stopping) return;
+          console.log('[WAVE] playing event fired, _isIOS=', window._isIOS, '_connectAnalyser=', typeof window._connectAnalyser);
           setBtns(datum, PAUSE_SVG, true);
           openPlayer(datum);
-          if (!window._isIOS && window._connectAnalyser) window._connectAnalyser(datum, a);
-          if (!window._isIOS && window._startWaveDraw)   window._startWaveDraw();
+          if (window._connectAnalyser) window._connectAnalyser(datum, a);
         });
         a.addEventListener('pause', () => {
           // Kör bara stopWaveDraw om spelaren fortfarande är aktiv (inte stängd)
@@ -3291,6 +3327,8 @@
         // SPELA — frigör låset DIREKT så paus-knappen inte fryser
         _toggleBusy = false;
         setBtns(datum, SPIN_SVG, true);
+        // Skapa/resumea AudioContext direkt i user gesture (krävs på mobil)
+        if (window._primeAudioCtx) window._primeAudioCtx();
         if (window._resumeAudioCtx) window._resumeAudioCtx(datum);
         const p = audio.play();
         _playingPromise[datum] = p;
