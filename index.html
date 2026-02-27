@@ -1178,17 +1178,9 @@
       transform: scaleY(0.04);
       will-change: transform;
     }
-    /* Peak-markör: liten linje som håller kvar och faller */
+    /* Peak-markör: dold */
     .sw-peak {
-      position: absolute;
-      width: 3px;
-      height: 2px;
-      border-radius: 1px;
-      background: #ffe87a;
-      box-shadow: 0 0 5px rgba(255,230,100,0.85), 0 0 10px rgba(255,200,50,0.4);
-      pointer-events: none;
-      will-change: bottom;
-      bottom: 0;
+      display: none;
     }
     [data-theme="light"] .sw-bar {
       background: linear-gradient(to top, #8a5c00 0%, #c4830a 40%, #e8a820 100%);
@@ -1203,7 +1195,7 @@
 
     /* ══ SLEEP TIMER ══ */
     .sp-sleep-btn {
-      width: 32px; height: 32px; border-radius: 50%;
+      width: 34px; height: 34px; border-radius: 50%;
       border: 1px solid rgba(255,255,255,0.08);
       background: rgba(255,255,255,0.05);
       color: rgba(255,255,255,0.35); cursor: pointer;
@@ -1331,10 +1323,11 @@
 
     /* ── Sound wave CSS-animation (iOS fallback) ── */
     @keyframes swPulse {
-      0%, 100% { transform: scaleY(var(--sw-floor)); }
-      50%       { transform: scaleY(var(--sw-peak));  }
+      0%        { transform: scaleY(var(--sw-floor)); }
+      30%       { transform: scaleY(var(--sw-peak));  }
+      100%      { transform: scaleY(var(--sw-floor)); }
     }
-    .sw-bar--animate { animation: swPulse var(--sw-dur, 0.9s) ease-in-out infinite; }
+    .sw-bar--animate { animation: swPulse var(--sw-dur, 0.9s) cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite; }
 
     /* ── MINI PLAYER ── */
     .player-mini {
@@ -1464,6 +1457,57 @@
     /* Favorit filter-chip */
     .filter-chip.fav-chip .fav-chip-heart { transition: color 0.2s; }
     .filter-chip.fav-chip.active .fav-chip-heart { color: #a84040; }
+
+    /* ── Fav chip animations ── */
+
+    /* POP IN: grows from a ball, quick start, soft landing */
+    @keyframes favChipPopIn {
+      0%   { transform: scale(0);    opacity: 0;   max-width: 0;     margin-right: 0; }
+      60%  { opacity: 1; }
+      100% { transform: scale(1);    opacity: 1;   max-width: 200px; margin-right: 8px; }
+    }
+
+    /* FALL OUT: slides down and fades */
+    @keyframes favChipFallOut {
+      0%   { transform: translateY(0)    scale(1);    opacity: 1;   max-width: 200px; margin-right: 8px; }
+      100% { transform: translateY(28px) scale(0.8);  opacity: 0;   max-width: 0;     margin-right: 0; }
+    }
+
+    /* Siblings bounce RIGHT */
+    @keyframes chipBounceRight {
+      0%   { transform: translateX(0); }
+      30%  { transform: translateX(10px); }
+      60%  { transform: translateX(-3px); }
+      80%  { transform: translateX(2px); }
+      100% { transform: translateX(0); }
+    }
+
+    /* Siblings bounce LEFT */
+    @keyframes chipBounceLeft {
+      0%   { transform: translateX(0); }
+      30%  { transform: translateX(-10px); }
+      60%  { transform: translateX(3px); }
+      80%  { transform: translateX(-2px); }
+      100% { transform: translateX(0); }
+    }
+
+    .fav-chip-entering {
+      display: inline-flex !important;
+      transform-origin: left center;
+      overflow: hidden;
+      animation: favChipPopIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .fav-chip-leaving {
+      transform-origin: center center;
+      overflow: hidden;
+      animation: favChipFallOut 0.5s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+    .chip-nudge-right {
+      animation: chipBounceRight 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .chip-nudge-left {
+      animation: chipBounceLeft 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
     .fav-count-badge {
       background: #a84040; color: #fff;
       font-size: 0.58rem; font-weight: 700;
@@ -1496,8 +1540,8 @@
     .moon-icon svg { display: block; }
 
     /* ── FILTER ── */
-    .filter-wrap { margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-    .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .filter-wrap { margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: margin-bottom 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+    .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
     .filter-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--chip-bg); border: 1.5px solid transparent; border-radius: 30px; padding: 5px 12px 5px 8px; box-shadow: var(--chip-shadow); font-size: .78rem; font-weight: 500; font-family: inherit; cursor: pointer; color: var(--text); transition: all 0.2s ease; }
     .filter-chip:hover { box-shadow: 0 3px 12px rgba(0,0,0,.18); transform: translateY(-1px); }
     .filter-chip.active { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); box-shadow: 0 4px 14px rgba(26,74,68,.3); animation: chipPulse 3.2s ease-in-out infinite; }
@@ -1830,7 +1874,7 @@
   <!-- FILTER -->
   <div class="filter-wrap" id="filter-wrap">
     <div class="filter-chips" id="filter-chips">
-      <button class="filter-chip fav-chip" id="fav-filter-chip" data-imam="favs" onclick="toggleFilter('favs')">
+      <button class="filter-chip fav-chip" id="fav-filter-chip" data-imam="favs" onclick="toggleFilter('favs')" style="display:none">
         <span class="fav-chip-heart" data-i18n-title="favTip" style="display:flex;align-items:center;color:rgba(0,0,0,0.4);">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </span>
@@ -2631,12 +2675,62 @@
   }
 
   function updateFavChip() {
-    const count = getFavs().length;
-    const chip  = document.getElementById('fav-filter-chip');
+    const count    = getFavs().length;
+    const chip     = document.getElementById('fav-filter-chip');
     if (!chip) return;
-    const badge = chip.querySelector('.fav-count-badge');
-    if (badge) badge.textContent = count > 0 ? count : '';
-    badge.style.display = count > 0 ? '' : 'none';
+    const badge    = chip.querySelector('.fav-count-badge');
+    const wasHidden = chip.style.display === 'none' || chip.style.display === '';
+    const siblings  = Array.from(chip.parentElement.querySelectorAll('.filter-chip:not(#fav-filter-chip)'));
+
+    if (badge) {
+      badge.textContent = count > 0 ? count : '';
+      badge.style.display = count > 0 ? '' : 'none';
+    }
+
+    if (count > 0 && (chip.style.display === 'none' || chip.style.display === '')) {
+      // — POP IN —
+      chip.style.display = 'inline-flex';
+      chip.classList.remove('fav-chip-leaving');
+      void chip.offsetWidth; // force reflow
+      chip.classList.add('fav-chip-entering');
+      chip.addEventListener('animationend', () => {
+        chip.classList.remove('fav-chip-entering');
+      }, { once: true });
+
+      // Siblings glide right
+      siblings.forEach(s => {
+        s.classList.remove('chip-nudge-right', 'chip-nudge-left');
+        void s.offsetWidth;
+        s.classList.add('chip-nudge-right');
+        s.addEventListener('animationend', () => s.classList.remove('chip-nudge-right'), { once: true });
+      });
+
+    } else if (count === 0 && chip.style.display !== 'none') {
+      // — POP OUT —
+      chip.classList.remove('fav-chip-entering');
+      chip.classList.add('fav-chip-leaving');
+      chip.addEventListener('animationend', () => {
+        chip.classList.remove('fav-chip-leaving');
+        chip.style.display = 'none';
+      }, { once: true });
+
+      // Siblings glide left
+      siblings.forEach(s => {
+        s.classList.remove('chip-nudge-right', 'chip-nudge-left');
+        void s.offsetWidth;
+        s.classList.add('chip-nudge-left');
+        s.addEventListener('animationend', () => s.classList.remove('chip-nudge-left'), { once: true });
+      });
+
+      // Återställ filter om favs var aktivt
+      if (chip.classList.contains('active')) {
+        chip.classList.remove('active');
+        if (typeof activeFilter !== 'undefined' && activeFilter === 'favs') {
+          activeFilter = null;
+          if (typeof applyFilter === 'function') applyFilter();
+        }
+      }
+    }
   }
 
   function syncAllFavBtns() {
@@ -2817,9 +2911,33 @@
     if (spDur) spDur.textContent = fmtTime(duration);
   }
 
-  function showSticky() { if (!_activeDatum) return; const p = document.getElementById('sticky-player'); p.classList.add('visible'); p.classList.remove('mini-mode'); }
-  function hideSticky() { const p = document.getElementById('sticky-player'); p.classList.remove('visible'); p.classList.remove('mini-mode'); }
-  function miniSticky() { if (!_activeDatum) return; const p = document.getElementById('sticky-player'); p.classList.add('visible'); p.classList.add('mini-mode'); }
+  function showSticky() {
+    if (!_activeDatum) return;
+    const p = document.getElementById('sticky-player');
+    p.classList.remove('is-collapsing');
+    p.classList.add('visible');
+    p.classList.remove('mini-mode');
+  }
+  function hideSticky() {
+    const p = document.getElementById('sticky-player');
+    p.classList.remove('visible');
+    p.classList.remove('mini-mode');
+    p.classList.remove('is-collapsing');
+  }
+  function miniSticky() {
+    if (!_activeDatum) return;
+    const p = document.getElementById('sticky-player');
+    if (p.classList.contains('mini-mode')) return;
+    p.classList.add('visible');
+    p.classList.remove('mini-mode');
+    // Force browser to register start state, then animate to mini
+    void p.offsetHeight;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        p.classList.add('mini-mode');
+      });
+    });
+  }
 
   let _miniTimer = null;
   window.addEventListener('scroll', () => {
@@ -3104,14 +3222,14 @@
           b.style.transform = 'scaleY(' + smooth[i] + ')';
         });
 
-        const FALL_SPEED = 0.040;
-        const PEAK_FALL  = 0.018;
+        const FALL_SPEED = 0.012;
+        const PEAK_FALL  = 0.008;
 
         function fallDown() {
           let anyVisible = false;
           for (let i = 0; i < BAR_COUNT; i++) {
             if (smooth[i] > MIN_SCALE) {
-              smooth[i] = Math.max(MIN_SCALE, smooth[i] - FALL_SPEED * (0.5 + smooth[i]));
+              smooth[i] = Math.max(MIN_SCALE, smooth[i] - FALL_SPEED * (0.3 + smooth[i] * 0.5));
               bars[i].style.transform = 'scaleY(' + smooth[i] + ')';
               anyVisible = true;
             }
