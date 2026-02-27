@@ -398,38 +398,37 @@
       background-position: 150% 0;
       animation: diamondSweep 8s linear infinite;
     }
-    /* Aktiv spelandes rad — komet-animation (samma som today-card) */
-    .playing-row-comet {
-      position: relative;
-      border-radius: 8px;
-    }
-    .playing-row-comet::before {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: 8px;
-      background: conic-gradient(
-        from var(--comet-angle),
-        transparent 0deg,
-        transparent 240deg,
-        rgba(201,168,76,0.04) 260deg,
-        rgba(201,168,76,0.15) 290deg,
-        rgba(201,168,76,0.45) 320deg,
-        rgba(232,201,122,0.85) 348deg,
-        rgba(255,248,210,1.00) 357deg,
-        rgba(255,255,255,0.95) 360deg,
-        transparent 360deg
-      );
-      animation: rotateComet 7s linear infinite;
-      z-index: 0;
-      pointer-events: none;
-    }
-    /* Desktop tr — klipp kometen och håll innehåll ovanpå */
+    /* Aktiv spelande rad — roterande komet-glow runt hela raden via outline + box-shadow */
     tbody tr.playing-row-comet {
-      overflow: hidden;
-      isolation: isolate;
+      position: relative;
+      outline: 1px solid transparent;
+      outline-offset: -1px;
+      animation: rowCometGlow 7s linear infinite;
     }
     tbody tr.playing-row-comet td { position: relative; z-index: 1; }
+
+    @keyframes rowCometGlow {
+      0%   {
+        outline-color: rgba(201,168,76,0.12);
+        box-shadow: 0 0 0 0 rgba(201,168,76,0), inset 0 0 0 rgba(201,168,76,0);
+      }
+      20%  {
+        outline-color: rgba(201,168,76,0.20);
+        box-shadow: 0 1px 6px rgba(201,168,76,0.06), inset 0 0 8px rgba(201,168,76,0.03);
+      }
+      38%  {
+        outline-color: rgba(255,248,210,0.90);
+        box-shadow: 0 0 18px rgba(232,201,122,0.30), 0 0 6px rgba(255,248,210,0.20), inset 0 0 14px rgba(201,168,76,0.08);
+      }
+      44%  {
+        outline-color: rgba(232,201,122,0.70);
+        box-shadow: 0 0 12px rgba(201,168,76,0.20), inset 0 0 10px rgba(201,168,76,0.06);
+      }
+      100% {
+        outline-color: rgba(201,168,76,0.12);
+        box-shadow: 0 0 0 0 rgba(201,168,76,0), inset 0 0 0 rgba(201,168,76,0);
+      }
+    }
     /* Mobile card wrapper */
     .playing-comet-wrap {
       position: relative;
@@ -1517,7 +1516,7 @@
     }
 
 
-    /* ── PLAY BUTTONS ── */
+        /* ── PLAY BUTTONS ── */
     .play-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--primary); border: none; cursor: pointer; color: #fff; flex-shrink: 0; box-shadow: 0 2px 8px rgba(36,100,93,.3); position: relative; overflow: hidden; transition: background 0.42s cubic-bezier(0.4,0,0.2,1), box-shadow 0.15s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     .play-btn:hover { box-shadow: 0 4px 14px rgba(36,100,93,.45); }
     .play-btn.playing { background: #c0392b; box-shadow: 0 2px 10px rgba(192,57,43,0.40); }
@@ -2242,7 +2241,7 @@
     return dayName + ' ' + d.getDate() + ' ' + monthName;
   }
 
-  const SCHEDULE = [
+  const SCHEDULE = window.SCHEDULE = [
     {day:1,  sidor:'2–11',    imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-02-17', vecka:'Tuesday',   surahs:'Al-Baqarah',                                                                                                        tooltip:'2:1 – 2:74'},
     {day:2,  sidor:'11–21',  imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-02-18', vecka:'Wednesday',   surahs:'Al-Baqarah',                                                                                                        tooltip:'2:75 – 2:141'},
     {day:3,  sidor:'22–31',  imam:'noor',        imamLabel:'Noor',               datum:'2026-02-19', vecka:'Thursday',  surahs:'Al-Baqarah',                                                                                                        tooltip:'2:142 – 2:202'},
@@ -2635,6 +2634,10 @@
   // ════════════════════════════════════════
   const FAV_KEY = 'tarawih_favs_2026';
 
+
+
+
+
   function getFavs() {
     try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch { return []; }
   }
@@ -2646,11 +2649,14 @@
   function toggleFav(day, triggerEl) {
     const favs = getFavs();
     const idx  = favs.indexOf(day);
-    if (idx === -1) favs.push(day); else favs.splice(idx, 1);
+    const adding = idx === -1;
+    if (adding) favs.push(day); else favs.splice(idx, 1);
     saveFavs(favs);
-    updateAllFavBtns(day, idx === -1);
+    updateAllFavBtns(day, adding);
     updateFavChip();
-    if (activeFilter === 'favs') applyFilter(); // re-filter om favorit-filter är aktivt
+    if (activeFilter === 'favs') applyFilter();
+
+
     // Pop-animation på det klickade elementet
     if (triggerEl) {
       triggerEl.classList.remove('pop');
@@ -2658,8 +2664,7 @@
       void triggerEl.offsetWidth;
       triggerEl.classList.add('pop');
       triggerEl.addEventListener('animationend', () => triggerEl.classList.remove('pop'), { once: true });
-      // Vita ring-markeringen tonas bort efter pop-animationen
-      if (idx === -1) { // nyss tillagd som favorit
+      if (adding) {
         setTimeout(() => {
           triggerEl.classList.add('ring-fade');
           triggerEl.addEventListener('animationend', () => triggerEl.classList.remove('ring-fade'), { once: true });
@@ -4732,7 +4737,7 @@
           </div>
           <button class="sp-sleep-cancel" id="sp-sleep-cancel">Avbryt</button>
         </div>
-        <!-- Hjärta -->
+        <!-- Hjärta + like count -->
         <button class="fav-btn" id="sp-fav-btn" data-day="" data-i18n-title="favTip" title="Spara favorit" style="width:34px;height:34px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.06);">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
