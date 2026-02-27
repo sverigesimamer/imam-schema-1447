@@ -2941,8 +2941,9 @@
       // Försök autoplay via muted-trick:
       // Registrera i audioState och koppla lyssnare FÖRE play() — annars missar vi events
       const a = new Audio();
-      a.crossOrigin = 'anonymous'; // krävs för Web Audio API på cross-origin mp3 (iOS Safari)
-      a.muted = true; // muted tillåts alltid av webbläsaren
+      a.preload = 'auto';
+      a.setAttribute('playsinline', '');
+      a.muted = true;
       a.src = audioUrls[row.datum];
 
       // Registrera direkt så att toggleAudio/closePlayer fungerar korrekt
@@ -2950,10 +2951,9 @@
 
       a.addEventListener('waiting',  () => setBtns(row.datum, SPIN_SVG, true));
       a.addEventListener('playing',  () => {
-        if (a._stopping) return; // stopp begärdes — ignorera playing-event
+        if (a._stopping) return;
         setBtns(row.datum, PAUSE_SVG, true);
-        openPlayer(row.datum);
-        // Unmute innan analyser kopplas — annars kan ljudet förbli tyst
+        if (_activeDatum !== row.datum) openPlayer(row.datum);
         if (!window._globalMuted) a.muted = false;
         if (window._connectAnalyser) window._connectAnalyser(row.datum, a);
       });
@@ -3038,37 +3038,28 @@
     syncAllFavBtns();
     updateFavChip();
 
-    // ══ SOUND WAVE ══
+    // ══ SOUND WAVE — CSS-animation, ingen Web Audio API ══
     (function() {
       const waveEl = document.getElementById('sp-soundwave');
       if (!waveEl) return;
 
-      const BAR_COUNT  = 32;
-      const MIN_SCALE  = 0.04;  // minsta stapelhöjd i vila
-      const COL_H      = 38;    // px — matchar .sw-bar height i CSS
-      const HOLD_FRAMES = 30;   // ~0.5s @ 60fps peak stannar kvar
-      const PEAK_DECAY  = 0.012; // hastighet peak faller per frame (0..1)
+      const BAR_COUNT = 52;
+      const MIN_SCALE = 0.04;
+      const COL_H     = 38;
 
-      const bars     = [];
-      const peakEls  = [];
-      const smooth   = new Float32Array(BAR_COUNT).fill(0);
-      const peakVal  = new Float32Array(BAR_COUNT).fill(0);
-      const peakHold = new Int32Array(BAR_COUNT).fill(0);
+      const bars    = [];
+      const peakEls = [];
 
       // Bygg DOM: .sw-col > .sw-bar + .sw-peak
       for (let i = 0; i < BAR_COUNT; i++) {
         const col = document.createElement('div');
         col.className = 'sw-col';
         col.style.cssText = 'position:relative;display:flex;align-items:flex-end;justify-content:center;height:' + COL_H + 'px;width:3px;flex-shrink:0;';
-
         const bar = document.createElement('div');
         bar.className = 'sw-bar';
-
         const pk = document.createElement('div');
         pk.className = 'sw-peak';
-        // Startposition: mitten av kolumnen
-        pk.style.top = Math.round(COL_H / 2) + 'px';
-
+        pk.style.bottom = '0px';
         col.appendChild(bar);
         col.appendChild(pk);
         waveEl.appendChild(col);
@@ -3076,134 +3067,75 @@
         peakEls.push(pk);
       }
 
-      // Safari stödjer Web Audio när crossOrigin="anonymous" är satt på audio-elementet
-      // och GitHub Pages skickar rätt CORS-headers
-      const isIOS = false;
+      // Samma värden som tidigare — exakt samma animation
+      const PEAK_CSS = [0.20,0.25,0.30,0.35,0.40,0.46,0.52,0.58,0.64,0.70,0.75,0.80,0.84,0.87,0.90,0.91,0.92,0.91,0.90,0.91,0.90,0.91,0.92,0.91,0.90,0.88,0.86,0.82,0.78,0.74,0.70,0.66,0.62,0.58,0.54,0.50,0.46,0.42,0.38,0.36,0.34,0.36,0.38,0.34,0.30,0.36,0.32,0.28,0.30,0.26,0.24,0.20];
+      const DUR_CSS  = [1.0,0.95,0.90,0.85,0.82,0.80,0.78,0.75,0.72,0.70,0.68,0.72,0.70,0.75,0.72,0.68,0.70,0.74,0.70,0.76,0.68,0.74,0.70,0.76,0.72,0.68,0.70,0.74,0.72,0.76,0.70,0.74,0.72,0.76,0.80,0.78,0.82,0.80,0.85,0.82,0.88,0.85,0.90,0.88,0.92,0.90,0.94,0.92,0.96,0.94,0.97,1.0];
+      const DLY_CSS  = [0,0.05,0.10,0.08,0.15,0.12,0.20,0.04,0.18,0.25,0.06,0.14,0.22,0.03,0.16,0.28,0.08,0.20,0.12,0.04,0.18,0.25,0.06,0.14,0.22,0.03,0.16,0.28,0.10,0.22,0.08,0.16,0.04,0.20,0.12,0.24,0.06,0.18,0.10,0.22,0.04,0.16,0.08,0.20,0.12,0.24,0.06,0.18,0.10,0.22,0.04,0];
 
-      let actx     = null;
-      let analyser = null;
-      let rafId    = null;
-      let running  = false;
-      const sources = {};
-
-      // ── CSS-animation fallback (iOS) ──
-      const PEAK_CSS = [0.25,0.30,0.38,0.46,0.54,0.62,0.70,0.76,0.82,0.86,0.89,0.91,0.92,0.91,0.90,0.91,0.91,0.90,0.91,0.92,0.91,0.89,0.86,0.82,0.76,0.70,0.62,0.54,0.46,0.38,0.30,0.25];
-      const DUR_CSS  = [1.0,0.9,0.85,0.80,0.75,0.82,0.70,0.78,0.72,0.68,0.74,0.70,0.76,0.72,0.68,0.74,0.74,0.68,0.72,0.76,0.70,0.74,0.68,0.72,0.78,0.70,0.82,0.75,0.80,0.85,0.90,1.0];
-      const DLY_CSS  = [0,0.05,0.10,0.15,0.08,0.20,0.12,0.04,0.18,0.25,0.06,0.14,0.22,0.03,0.16,0.28,0.28,0.16,0.03,0.22,0.14,0.06,0.25,0.18,0.04,0.12,0.20,0.08,0.15,0.10,0.05,0];
       function startCSS() {
         bars.forEach((b, i) => {
+          b.style.removeProperty('transform'); // ta bort inline transform så animation tar över
           b.style.setProperty('--sw-floor', MIN_SCALE);
           b.style.setProperty('--sw-peak',  PEAK_CSS[i]);
           b.style.setProperty('--sw-dur',   DUR_CSS[i] + 's');
           b.style.animationDelay = DLY_CSS[i] + 's';
           b.classList.add('sw-bar--animate');
         });
-      }
-      function stopCSS() {
-        bars.forEach(b => {
-          b.classList.remove('sw-bar--animate');
-          b.style.transform = 'scaleY(' + MIN_SCALE + ')';
+        // Sätt peak-markörer på rätt höjd direkt
+        peakEls.forEach((p, i) => {
+          p.style.bottom = Math.round(PEAK_CSS[i] * COL_H) + 'px';
+          p.style.top = 'auto';
         });
-        peakEls.forEach(p => { p.style.bottom = '0px'; p.style.top = 'auto'; });
       }
 
-      // ── Draw-loop ──
-      // getByteTimeDomainData: råa PCM-samplar (0–255, 128=tyst)
-      // Varje stapel visar max-amplitud i sitt segment → exakt synk med filen
-      function draw() {
-        if (!running || !analyser) return;
-        rafId = requestAnimationFrame(draw);
-
-        const N  = analyser.fftSize;
-        const td = new Uint8Array(N);
-        analyser.getByteTimeDomainData(td);
-
-        const segSize = Math.floor(N / BAR_COUNT);
-
-        for (let i = 0; i < BAR_COUNT; i++) {
-          // Max-amplitud inom segmentet
-          let maxAmp = 0;
-          const off = i * segSize;
-          for (let j = 0; j < segSize; j++) {
-            const s = Math.abs(td[off + j] - 128) / 128;
-            if (s > maxAmp) maxAmp = s;
-          }
-
-          // Smoothing: snabb attack, långsam decay
-          const prev = smooth[i];
-          smooth[i]  = maxAmp > prev
-            ? prev + (maxAmp - prev) * 0.90
-            : prev + (maxAmp - prev) * 0.08;
-          const val = Math.max(smooth[i], MIN_SCALE);
-
-          // Stapel: scaleY från mitten
-          bars[i].style.transform = 'scaleY(' + Math.min(val, 1.0) + ')';
-
-          // Peak hold + fall
-          if (val >= peakVal[i]) {
-            peakVal[i]  = val;
-            peakHold[i] = HOLD_FRAMES;
-          } else if (peakHold[i] > 0) {
-            peakHold[i]--;
-          } else {
-            peakVal[i] = Math.max(MIN_SCALE, peakVal[i] - PEAK_DECAY);
-          }
-
-          // Peak-markörens bottom-position räknat från stapelns botten
-          // val=1.0 → peak högst upp = COL_H px från botten
-          // val=MIN_SCALE → peak nästan vid botten
-          const peakBottom = Math.round(peakVal[i] * COL_H);
-          peakEls[i].style.bottom = peakBottom + 'px';
-          peakEls[i].style.top = 'auto';
-        }
-      }
-
-      function buildGraph() {
-        if (actx) return true;
-        try {
-          actx     = new (window.AudioContext || window.webkitAudioContext)();
-          analyser = actx.createAnalyser();
-          analyser.fftSize             = 1024;
-          analyser.smoothingTimeConstant = 0;
-          analyser.connect(actx.destination);
-          return true;
-        } catch(e) { actx = analyser = null; return false; }
-      }
-
-      window._primeAudioCtx = function() {
-        if (isIOS) return;
-        buildGraph();
-      };
-
-      window._connectAnalyser = function(datum, audioEl) {
-        if (isIOS) { startCSS(); return; }
-        if (!buildGraph()) { startCSS(); return; }
-        if (!sources[datum]) {
-          try {
-            const src = actx.createMediaElementSource(audioEl);
-            src.connect(analyser);
-            sources[datum] = src;
-          } catch(e) { startCSS(); return; }
-        }
-        const go = () => { running = true; draw(); };
-        if (actx.state === 'suspended') {
-          actx.resume().then(go).catch(() => startCSS());
-        } else { go(); }
-      };
+      // Mjuk fall-animation på paus — staplarna och topparna glider ner stegvis
+      let fallRafId = null;
+      const smooth  = new Float32Array(BAR_COUNT);
+      const peakVal = new Float32Array(BAR_COUNT);
 
       window._stopWaveDraw = function() {
-        running = false;
-        cancelAnimationFrame(rafId);
-        rafId = null;
-        smooth.fill(0);
-        peakVal.fill(0);
-        peakHold.fill(0);
-        stopCSS();
+        cancelAnimationFrame(fallRafId);
+        // Stoppa CSS-animation och läs av ungefärlig nuvarande höjd per stapel
+        bars.forEach((b, i) => {
+          b.classList.remove('sw-bar--animate');
+          // Uppskatta nuvarande scaleY baserat på CSS-peak (animationen är någonstans mellan floor och peak)
+          smooth[i]  = PEAK_CSS[i] * 0.6; // konservativ uppskattning
+          peakVal[i] = PEAK_CSS[i];
+          b.style.transform = 'scaleY(' + smooth[i] + ')';
+        });
+
+        const FALL_SPEED = 0.040;
+        const PEAK_FALL  = 0.018;
+
+        function fallDown() {
+          let anyVisible = false;
+          for (let i = 0; i < BAR_COUNT; i++) {
+            if (smooth[i] > MIN_SCALE) {
+              smooth[i] = Math.max(MIN_SCALE, smooth[i] - FALL_SPEED * (0.5 + smooth[i]));
+              bars[i].style.transform = 'scaleY(' + smooth[i] + ')';
+              anyVisible = true;
+            }
+            if (peakVal[i] > MIN_SCALE) {
+              peakVal[i] = Math.max(MIN_SCALE, peakVal[i] - PEAK_FALL);
+              peakEls[i].style.bottom = Math.round(peakVal[i] * COL_H) + 'px';
+              peakEls[i].style.top = 'auto';
+              anyVisible = true;
+            }
+          }
+          if (anyVisible) {
+            fallRafId = requestAnimationFrame(fallDown);
+          } else {
+            bars.forEach(b => { b.style.transform = 'scaleY(' + MIN_SCALE + ')'; });
+            peakEls.forEach(p => { p.style.bottom = '0px'; p.style.top = 'auto'; });
+          }
+        }
+        fallRafId = requestAnimationFrame(fallDown);
       };
 
-      window._resumeAudioCtx = function() {
-        if (actx && actx.state === 'suspended') actx.resume().catch(() => {});
-      };
+      // Stubs — inga Web Audio API-anrop
+      window._primeAudioCtx   = function() {};
+      window._resumeAudioCtx  = function() {};
+      window._connectAnalyser = function() { startCSS(); };
     })();
 
     const muteBtn = document.getElementById('sticky-mute');
@@ -3226,6 +3158,14 @@
 
     const playBtn = document.getElementById('sticky-play-btn');
     if (playBtn) playBtn.addEventListener('click', e => { if (!_activeDatum) return; toggleAudio(_activeDatum); e.stopPropagation(); });
+
+    // Återuppta AudioContext när appen kommer tillbaka i förgrunden
+    // (iOS Safari suspenderar AudioContext vid skärmlås — men audio fortsätter spela)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        if (window._resumeAudioCtx) window._resumeAudioCtx();
+      }
+    });
 
     // Klick på mini-inner → expandera till full (men inte play/skip-knappar)
     document.querySelector('.sp-mini-inner')?.addEventListener('click', e => {
@@ -3574,18 +3514,63 @@
     if ('mediaSession' in navigator) {
       const row = SCHEDULE.find(r => r.datum === datum);
       if (row) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: row.imamLabel,
-          artist: (T[_currentLang].night || 'Natt') + ' ' + row.day,
-          album: 'Tarawih — Kämpingehallen Ramadan 2026',
-        });
+        const IMAM_COLORS = {
+          abdurrahman:'#e8630a', saed:'#d4a800', noor:'#2980b9',
+          abdul:'#555555', mohammed:'#219150', yacquub:'#7d3aac',
+          abdelsalam:'#7b3f00', hatem:'#2d6a4f', ibrahim:'#1a3a6b'
+        };
+        const color = IMAM_COLORS[row.imam] || '#24645d';
+        const initials = row.imamLabel.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+        // Endast ASCII i SVG — btoa() kraschar annars på svenska tecken
+        const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">'
+          + '<rect width="512" height="512" fill="#0f1614"/>'
+          + '<rect width="512" height="512" fill="' + color + '" opacity="0.3"/>'
+          + '<circle cx="256" cy="210" r="130" fill="' + color + '"/>'
+          + '<text x="256" y="258" font-family="system-ui" font-size="110" font-weight="700" fill="white" text-anchor="middle">' + initials + '</text>'
+          + '<text x="256" y="380" font-family="system-ui" font-size="40" fill="rgba(255,255,255,0.7)" text-anchor="middle">Natt ' + row.day + '</text>'
+          + '</svg>';
+        let artUrl = '';
+        try { artUrl = 'data:image/svg+xml;base64,' + btoa(svg); } catch(e) {}
+        try {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: row.imamLabel,
+            artist: 'Natt ' + row.day,
+            album: 'Tarawih Kampingehallen 2026',
+            artwork: artUrl ? [{ src: artUrl, sizes: '512x512', type: 'image/svg+xml' }] : []
+          });
+        } catch(e) {}
+        // Sätt playbackState direkt — iOS behöver detta för att tillåta bakgrundsuppspelning
+        navigator.mediaSession.playbackState = 'playing';
         navigator.mediaSession.setActionHandler('play', () => {
           const a = audioState[datum];
-          if (a && a.paused) a.play().catch(() => {});
+          if (a && a.paused) {
+            a.play().catch(() => {});
+            navigator.mediaSession.playbackState = 'playing';
+          }
         });
         navigator.mediaSession.setActionHandler('pause', () => {
           const a = audioState[datum];
-          if (a && !a.paused) a.pause();
+          if (a && !a.paused) {
+            a.pause();
+            navigator.mediaSession.playbackState = 'paused';
+          }
+        });
+        // nexttrack/previoustrack krävs av iOS för att hålla MediaSession levande i bakgrunden
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+          const a = audioState[datum];
+          if (a) a.currentTime = Math.min((a.duration || 0), a.currentTime + 30);
+        });
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+          const a = audioState[datum];
+          if (a) a.currentTime = Math.max(0, a.currentTime - 30);
+        });
+        navigator.mediaSession.setActionHandler('seekforward', (d) => {
+          const a = audioState[datum];
+          if (a) a.currentTime = Math.min((a.duration || 0), a.currentTime + (d.seekOffset || 30));
+        });
+        navigator.mediaSession.setActionHandler('seekbackward', (d) => {
+          const a = audioState[datum];
+          if (a) a.currentTime = Math.max(0, a.currentTime - (d.seekOffset || 30));
         });
       }
     }
@@ -3610,22 +3595,13 @@
   function _stopAudio(datum) {
     const a = audioState[datum];
     if (!a) return Promise.resolve();
-    const pending = _playingPromise[datum];
+    // Sätt _stopping FÖRE pause() — hindrar playing-event från att öppna spelaren igen
+    a._stopping = true;
     _playingPromise[datum] = null;
-    if (pending) {
-      // Vänta på att play()-promise resolvar SEDAN pausa — förhindrar AbortError-glitch.
-      // Sätt en flagga så att play-resolve inte startar om uppspelning.
-      a._stopping = true;
-      return pending
-        .catch(() => {})
-        .then(() => {
-          if (!a.paused) try { a.pause(); } catch(e) {}
-          a._stopping = false;
-          setBtns(datum, PLAY_SVG, false);
-        });
-    }
-    if (!a.paused) try { a.pause(); } catch(e) {}
+    try { a.pause(); } catch(e) {}
     setBtns(datum, PLAY_SVG, false);
+    // Återställ flaggan i nästa microtask när alla events kört klart
+    Promise.resolve().then(() => { a._stopping = false; });
     return Promise.resolve();
   }
 
@@ -3646,19 +3622,20 @@
 
       if (!audioState[datum]) {
         const a = new Audio();
-        a.crossOrigin = 'anonymous'; // krävs för Web Audio API på cross-origin mp3 (iOS Safari)
+        a.preload = 'auto';
+        a.setAttribute('playsinline', '');
         a.muted = !!window._globalMuted;
         a.src = audioUrls[datum];
         a.addEventListener('waiting',  () => setBtns(datum, SPIN_SVG, true));
         a.addEventListener('playing',  () => {
           if (a._stopping) return;
-          console.log('[WAVE] playing event fired, _isIOS=', window._isIOS, '_connectAnalyser=', typeof window._connectAnalyser);
           setBtns(datum, PAUSE_SVG, true);
-          openPlayer(datum);
+          if (_activeDatum !== datum) openPlayer(datum);
+          if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
           if (window._connectAnalyser) window._connectAnalyser(datum, a);
         });
         a.addEventListener('pause', () => {
-          // Kör bara stopWaveDraw om spelaren fortfarande är aktiv (inte stängd)
+          if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
           if (_activeDatum === datum && window._stopWaveDraw) window._stopWaveDraw();
         });
         a.addEventListener('timeupdate', () => { if (!a._seekLock) updatePlayerUI(datum, a.currentTime, a.duration); });
@@ -4673,12 +4650,9 @@
         <span class="sp-ctrl-lbl" id="sp-prev-label"></span>
       </button>
       <button class="sp-ctrl-btn" id="sp-skip-back-btn" data-i18n-title="skipBack" title="−30 sekunder">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Cirkel-pil moturs -->
-          <path d="M12 5C8.13 5 5 8.13 5 12s3.13 7 7 7 7-3.13 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <polyline points="8,2 5,5 8,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 30 -->
-          <text x="12" y="13.5" text-anchor="middle" dominant-baseline="middle" font-size="5.5" font-weight="700" font-family="system-ui,sans-serif" fill="currentColor" stroke="none">30</text>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="12.5,4 4,12 12.5,20"/>
+          <polygon points="20.5,4 12,12 20.5,20"/>
         </svg>
         <span class="sp-ctrl-lbl">−30s</span>
       </button>
@@ -4698,12 +4672,9 @@
       </button>
 
       <button class="sp-ctrl-btn" id="sp-skip-fwd-btn" data-i18n-title="skipFwd" title="+30 sekunder">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Cirkel-pil medurs -->
-          <path d="M12 5c3.87 0 7 3.13 7 7s-3.13 7-7 7-7-3.13-7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <polyline points="16,2 19,5 16,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 30 -->
-          <text x="12" y="13.5" text-anchor="middle" dominant-baseline="middle" font-size="5.5" font-weight="700" font-family="system-ui,sans-serif" fill="currentColor" stroke="none">30</text>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="3.5,4 12,12 3.5,20"/>
+          <polygon points="11.5,4 20,12 11.5,20"/>
         </svg>
         <span class="sp-ctrl-lbl">+30s</span>
       </button>
@@ -4744,13 +4715,19 @@
       <!-- Mini controls -->
       <div class="sp-mini-controls">
         <button class="sp-mini-ctrl" id="sp-mini-skip-back">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.85"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="12.5,4 4,12 12.5,20"/>
+            <polygon points="20.5,4 12,12 20.5,20"/>
+          </svg>
         </button>
         <button class="sp-mini-play" id="sp-mini-play">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="7,3 21,12 7,21"/></svg>
         </button>
         <button class="sp-mini-ctrl" id="sp-mini-skip-fwd">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-3.85"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="3.5,4 12,12 3.5,20"/>
+            <polygon points="11.5,4 20,12 11.5,20"/>
+          </svg>
         </button>
       </div>
       <!-- Mini progress -->
