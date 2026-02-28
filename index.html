@@ -1603,6 +1603,7 @@
       100% { transform: scale(1);    box-shadow: 0 2px 8px rgba(36,100,93,.3); }
     }
     .play-btn.share-pulse { animation: sharePulse 0.55s ease-in-out; }
+    .sp-play-hero.share-pulse { animation: sharePulse 0.55s ease-in-out; }
     .play-btn-ripple { position: absolute; border-radius: 50%; width: 36px; height: 36px; left: 0; top: 0; background: rgba(255,255,255,0.28); transform: scale(0); pointer-events: none; animation: spmRipple 0.55s ease-out forwards; }
     .td-moon { text-align: center; width: 32px; padding: 12px 8px 12px 0; }
     .moon-icon svg { display: block; }
@@ -2966,6 +2967,22 @@
   function updateStickyPlayBtn(isPlaying) {
     const btn = document.getElementById('sticky-play-btn');
     if (!btn) return;
+    // Always update play/pause class
+    if (isPlaying) btn.classList.add('playing');
+    else           btn.classList.remove('playing');
+    // Skip spring/ripple animations if state hasn't changed — avoids glitch on repeated calls
+    const stateChanged = isPlaying !== btn._lastPlayState;
+    btn._lastPlayState = isPlaying;
+    if (!stateChanged) {
+      // Still update mini play button icon
+      const miniPlay = document.getElementById('sp-mini-play');
+      if (miniPlay) {
+        miniPlay.innerHTML = isPlaying
+          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><rect x="6" y="3" width="4" height="18" rx="1.5"/><rect x="14" y="3" width="4" height="18" rx="1.5"/></svg>'
+          : '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="7,3 21,12 7,21"/></svg>';
+      }
+      return;
+    }
     // Spring animation on ring-inner
     btn.classList.remove('springing');
     void btn.offsetWidth;
@@ -2977,9 +2994,6 @@
     rip.style.background = 'rgba(255,255,255,0.18)';
     btn.appendChild(rip);
     rip.addEventListener('animationend', () => rip.remove(), { once: true });
-    // Play/pause state
-    if (isPlaying) btn.classList.add('playing');
-    else           btn.classList.remove('playing');
     // Sound wave — startas/stoppas via audio events (playing/pause), inte här
     // Mini play button icon
     const miniPlay = document.getElementById('sp-mini-play');
@@ -3087,8 +3101,9 @@
   }
 
   let _miniTimer = null;
+  let _shareNavActive = false;
   window.addEventListener('scroll', () => {
-    if (!_activeDatum || _seekActive) return;
+    if (!_activeDatum || _seekActive || _shareNavActive) return;
     const p = document.getElementById('sticky-player');
     if (!p || !p.classList.contains('visible') || p.classList.contains('mini-mode')) return;
     clearTimeout(_miniTimer);
@@ -3201,96 +3216,21 @@
         return;
       }
 
+      // Blockera scroll→mini under navigeringen
+      _shareNavActive = true;
+
       // Scrolla till raden
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-      // Försök autoplay via muted-trick:
-      // Registrera i audioState och koppla lyssnare FÖRE play() — annars missar vi events
-      const a = new Audio();
-      a.preload = 'auto';
-      a.setAttribute('playsinline', '');
-      a.muted = true;
-      a.src = audioUrls[row.datum];
+      // Öppna full player utan att starta ljud — användaren klickar play själv
+      _activeDatum = row.datum;
+      updateStickyControls();
+      showSegmentControl(row.datum);
+      showSticky();
+      clearTimeout(_autoMiniTimer);
 
-      // Registrera direkt så att toggleAudio/closePlayer fungerar korrekt
-      audioState[row.datum] = a;
-
-      a.addEventListener('waiting',  () => setBtns(row.datum, SPIN_SVG, true));
-      a.addEventListener('playing',  () => {
-        if (a._stopping) return;
-        setBtns(row.datum, PAUSE_SVG, true);
-        if (_activeDatum !== row.datum) openPlayer(row.datum);
-        if (!window._globalMuted) a.muted = false;
-        if (window._connectAnalyser) window._connectAnalyser(row.datum, a);
-      });
-      a.addEventListener('pause', () => {
-        setBtns(row.datum, PLAY_SVG, false);
-        updateStickyPlayBtn(false);
-        if (_activeDatum === row.datum && window._stopWaveDraw) window._stopWaveDraw();
-      });
-      a.addEventListener('timeupdate', () => { if (!a._seekLock) updatePlayerUI(row.datum, a.currentTime, a.duration); });
-      a.addEventListener('loadedmetadata', () => updatePlayerUI(row.datum, a.currentTime, a.duration));
-      a.addEventListener('ended', () => {
-        closePlayer(row.datum); setBtns(row.datum, PLAY_SVG, false);
-        updatePlayerUI(row.datum, 0, a.duration);
-        if (window._stopWaveDraw) window._stopWaveDraw();
-      });
-      a.addEventListener('error', () => {
-        _playingPromise[row.datum] = null;
-        setBtns(row.datum, PLAY_SVG, false);
-        if (_activeDatum === row.datum) closePlayer(row.datum);
-        if (window._stopWaveDraw) window._stopWaveDraw();
-        // Falla tillbaka på pulsande knapp
-        waitForBtnAndPulse(target);
-      });
-
-      setBtns(row.datum, SPIN_SVG, true);
-      const p = a.play();
-      _playingPromise[row.datum] = p;
-      if (p && typeof p.then === 'function') {
-        p.then(() => {
-          if (_playingPromise[row.datum] === p) _playingPromise[row.datum] = null;
-          // Unmute nu när play lyckats — om _connectAnalyser redan körts, resumea AudioContext
-          a.muted = !!window._globalMuted;
-          if (window._resumeAudioCtx) window._resumeAudioCtx(row.datum);
-        }).catch(() => {
-          _playingPromise[row.datum] = null;
-          delete audioState[row.datum];
-          setBtns(row.datum, PLAY_SVG, false);
-          // Autoplay blockerades — visa pulsande knapp istället
-          waitForBtnAndPulse(target);
-        });
-      }
-    }
-
-    function waitForBtnAndPulse(target) {
-      const btnDeadline = Date.now() + 5000;
-      function waitForBtn() {
-        const playBtn = target.querySelector('.play-btn');
-        if (playBtn) {
-          startPulse(playBtn);
-        } else if (Date.now() < btnDeadline) {
-          setTimeout(waitForBtn, 150);
-        }
-      }
-      setTimeout(waitForBtn, 200);
-    }
-
-    function startPulse(playBtn) {
-      let pulseCount = 0;
-      const maxPulses = 8;
-      function doPulse() {
-        if (pulseCount >= maxPulses) return;
-        pulseCount++;
-        playBtn.classList.remove('share-pulse');
-        void playBtn.offsetWidth;
-        playBtn.classList.add('share-pulse');
-        playBtn.addEventListener('animationend', () => {
-          playBtn.classList.remove('share-pulse');
-          setTimeout(doPulse, 180);
-        }, { once: true });
-      }
-      doPulse();
+      // Släpp scroll-blockeringen efter att scroll är klar (~1s)
+      setTimeout(() => { _shareNavActive = false; }, 1200);
     }
 
     setTimeout(tryInit, 400);
@@ -3418,7 +3358,10 @@
       const DUR_CSS  = [1.0,0.95,0.90,0.85,0.82,0.80,0.78,0.75,0.72,0.70,0.68,0.72,0.70,0.75,0.72,0.68,0.70,0.74,0.70,0.76,0.68,0.74,0.70,0.76,0.72,0.68,0.70,0.74,0.72,0.76,0.70,0.74,0.72,0.76,0.80,0.78,0.82,0.80,0.85,0.82,0.88,0.85,0.90,0.88,0.92,0.90,0.94,0.92,0.96,0.94,0.97,1.0];
       const DLY_CSS  = [0,0.05,0.10,0.08,0.15,0.12,0.20,0.04,0.18,0.25,0.06,0.14,0.22,0.03,0.16,0.28,0.08,0.20,0.12,0.04,0.18,0.25,0.06,0.14,0.22,0.03,0.16,0.28,0.10,0.22,0.08,0.16,0.04,0.20,0.12,0.24,0.06,0.18,0.10,0.22,0.04,0.16,0.08,0.20,0.12,0.24,0.06,0.18,0.10,0.22,0.04,0];
 
+      let _waveRunning = false;
+
       function startCSS() {
+        _waveRunning = true;
         bars.forEach((b, i) => {
           b.style.removeProperty('transform'); // ta bort inline transform så animation tar över
           b.style.setProperty('--sw-floor', MIN_SCALE);
@@ -3440,6 +3383,8 @@
       const peakVal = new Float32Array(BAR_COUNT);
 
       window._stopWaveDraw = function() {
+        if (!_waveRunning) return;
+        _waveRunning = false;
         cancelAnimationFrame(fallRafId);
         // Stoppa CSS-animation och läs av ungefärlig nuvarande höjd per stapel
         bars.forEach((b, i) => {
