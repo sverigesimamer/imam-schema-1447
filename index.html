@@ -1328,7 +1328,76 @@
     }
     .sw-bar--animate { animation: swPulse var(--sw-dur, 0.9s) cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite; }
 
-    /* ── MINI PLAYER ── */
+    /* ── TRACK FLOATING PILL (Tarawih / Isha) ── */
+    .sp-segment-wrap {
+      display: none;
+      justify-content: center;
+      margin: 8px 0 14px;
+    }
+    .sp-segment-wrap.visible { display: flex; }
+    .sp-segment {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 3px;
+      position: relative;
+      gap: 2px;
+    }
+    [data-theme="light"] .sp-segment {
+      background: rgba(0,0,0,0.05);
+      border-color: rgba(0,0,0,0.08);
+    }
+    .sp-segment-pill {
+      position: absolute;
+      top: 3px; bottom: 3px;
+      border-radius: 17px;
+      background: rgba(201,168,76,0.15);
+      border: 1px solid rgba(201,168,76,0.35);
+      box-shadow: 0 1px 8px rgba(201,168,76,0.12), 0 0 0 0 rgba(201,168,76,0);
+      transition: left 0.3s cubic-bezier(0.34,1.2,0.64,1), width 0.3s cubic-bezier(0.34,1.2,0.64,1);
+      pointer-events: none;
+      z-index: 0;
+    }
+    [data-theme="light"] .sp-segment-pill {
+      background: rgba(201,168,76,0.12);
+      border-color: rgba(201,168,76,0.4);
+    }
+    .sp-segment-btn {
+      position: relative; z-index: 1;
+      background: none; border: none;
+      padding: 5px 14px;
+      font-family: inherit; font-size: 0.70rem; font-weight: 600;
+      color: rgba(255,255,255,0.30);
+      border-radius: 17px;
+      cursor: pointer;
+      transition: color 0.2s ease;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .sp-segment-btn.active {
+      color: rgba(201,168,76,0.95);
+    }
+    .sp-segment-btn .sp-seg-icon { font-size: 0.75rem; line-height: 1; }
+    [data-theme="light"] .sp-segment-btn { color: rgba(0,0,0,0.30); }
+    [data-theme="light"] .sp-segment-btn.active { color: rgba(140,100,30,0.95); }
+
+    /* Small dot indicator on table row when isha exists */
+    .isha-dot {
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: rgba(201,168,76,0.7);
+      margin-left: 4px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+        /* ── MINI PLAYER ── */
     .player-mini {
       position: absolute; bottom: 0; left: 0; right: 0;
       padding: 0 10px 10px;
@@ -2738,7 +2807,80 @@
     }
   }
 
-  function syncAllFavBtns() {
+  // ── ACTIVE TRACK TYPE per datum: 'tarawih' | 'isha' ──
+  const _activeTrackType = {}; // datum → 'tarawih' | 'isha'
+
+  function showSegmentControl(datum) {
+    const wrap = document.getElementById('sp-segment-wrap');
+    if (!wrap) return;
+    const hasIsha = !!ishaUrls[datum];
+    wrap.classList.toggle('visible', hasIsha);
+    if (!hasIsha) return;
+    // Set pill to current active track
+    const type = _activeTrackType[datum] || 'tarawih';
+    _updateSegmentPill(type);
+  }
+
+  function hideSegmentControl() {
+    const wrap = document.getElementById('sp-segment-wrap');
+    if (wrap) wrap.classList.remove('visible');
+  }
+
+  function _updateSegmentPill(type) {
+    const seg   = document.getElementById('sp-segment');
+    const pill  = document.getElementById('sp-segment-pill');
+    const btnT  = document.getElementById('sp-seg-tarawih');
+    const btnI  = document.getElementById('sp-seg-isha');
+    if (!seg || !pill || !btnT || !btnI) return;
+
+    btnT.classList.toggle('active', type === 'tarawih');
+    btnI.classList.toggle('active', type === 'isha');
+
+    // Move pill to active button
+    const activeBtn = type === 'tarawih' ? btnT : btnI;
+    const segRect   = seg.getBoundingClientRect();
+    const btnRect   = activeBtn.getBoundingClientRect();
+    pill.style.left  = (btnRect.left - segRect.left) + 'px';
+    pill.style.width = btnRect.width + 'px';
+  }
+
+  function _switchTrack(datum, type) {
+    if (!datum) return;
+    const prevType = _activeTrackType[datum] || 'tarawih';
+    if (prevType === type) return;
+
+    // Pause whichever is playing
+    const prevAudio = type === 'isha' ? audioState[datum] : ishaState[datum];
+    if (prevAudio && !prevAudio.paused) {
+      prevAudio.pause();
+      setBtns(datum, PLAY_SVG, false);
+      updateStickyPlayBtn(false);
+      if (window._stopWaveDraw) window._stopWaveDraw();
+    }
+
+    _activeTrackType[datum] = type;
+    _updateSegmentPill(type);
+
+    // Update progress bar to new track's position
+    const nextAudio = type === 'isha' ? ishaState[datum] : audioState[datum];
+    if (nextAudio) {
+      updatePlayerUI(datum, nextAudio.currentTime, nextAudio.duration || 0);
+      setBtns(datum, nextAudio.paused ? PLAY_SVG : PAUSE_SVG, !nextAudio.paused);
+    } else {
+      updatePlayerUI(datum, 0, 0);
+      setBtns(datum, PLAY_SVG, false);
+    }
+  }
+
+  // Override toggleAudio to respect active track type
+  // We patch the sticky play button to route to correct audio
+  function _getActiveAudio(datum) {
+    const type = _activeTrackType[datum] || 'tarawih';
+    if (type === 'isha') return ishaState[datum];
+    return audioState[datum];
+  }
+
+    function syncAllFavBtns() {
     const favs = getFavs();
     document.querySelectorAll('.fav-btn[data-day]').forEach(btn => {
       const day = parseInt(btn.dataset.day);
@@ -2989,9 +3131,9 @@
       _collapseTimer = setTimeout(() => { if (!_dragging) trackEl.classList.remove('bar-expanded'); }, 800);
     }
     function commitSeek(pct) {
-      if (!_activeDatum || !audioState[_activeDatum]) return;
-      const audio = audioState[_activeDatum];
-      if (!audio.duration) return;
+      if (!_activeDatum) return;
+      const audio = _getActiveAudio(_activeDatum);
+      if (!audio || !audio.duration) return;
       audio._seekLock = true;
       audio.currentTime = pct * audio.duration;
       updatePlayerUI(_activeDatum, audio.currentTime, audio.duration);
@@ -3012,8 +3154,9 @@
     trackEl.addEventListener('pointermove', e => {
       if (!_dragging) return;
       const pct = getPct(e.clientX); applyPct(pct);
-      if (_activeDatum && audioState[_activeDatum]?.duration) {
-        const scrubTime = pct * audioState[_activeDatum].duration;
+      const _scrubAud = _activeDatum ? _getActiveAudio(_activeDatum) : null;
+      if (_scrubAud?.duration) {
+        const scrubTime = pct * _scrubAud.duration;
         const spCur = document.getElementById('sp-cur');
         if (spCur) spCur.textContent = fmtTime(scrubTime);
       }
@@ -3153,6 +3296,86 @@
     setTimeout(tryInit, 400);
   });
 
+  // ── MASTER STOP — pausar absolut allt ljud ──
+  function _stopAll(exceptDatum, exceptType) {
+    Object.keys(audioState).forEach(d => {
+      if (audioState[d] && !audioState[d].paused) {
+        if (d === exceptDatum && exceptType === 'tarawih') return;
+        audioState[d].pause();
+        if (d !== exceptDatum) setBtns(d, PLAY_SVG, false);
+      }
+    });
+    Object.keys(ishaState).forEach(d => {
+      if (ishaState[d] && !ishaState[d].paused) {
+        if (d === exceptDatum && exceptType === 'isha') return;
+        ishaState[d].pause();
+      }
+    });
+  }
+
+    // ── ISHA AUDIO TOGGLE ──
+  function _toggleIshaAudio(datum) {
+    if (!ishaUrls[datum]) return;
+
+    if (!ishaState[datum]) {
+      const a = new Audio();
+      a.preload = 'auto';
+      a.setAttribute('playsinline', '');
+      a.muted = !!window._globalMuted;
+      a.src = ishaUrls[datum];
+
+      a.addEventListener('waiting', () => {
+        if (_activeTrackType[datum] !== 'isha') return;
+        setBtns(datum, SPIN_SVG, true);
+        updateStickyPlayBtn(false);
+      });
+      a.addEventListener('playing', () => {
+        if (a._stopping) return;
+        // Only update UI if this is still the active track
+        if (_activeTrackType[datum] === 'isha' && _activeDatum === datum) {
+          setBtns(datum, PAUSE_SVG, true);
+          updateStickyPlayBtn(true);
+        }
+        if (window._connectAnalyser) window._connectAnalyser(datum, a);
+      });
+      a.addEventListener('pause', () => {
+        if (_activeTrackType[datum] === 'isha' && _activeDatum === datum) {
+          setBtns(datum, PLAY_SVG, false);
+          updateStickyPlayBtn(false);
+        }
+        if (window._stopWaveDraw) window._stopWaveDraw();
+      });
+      a.addEventListener('timeupdate', () => {
+        if (!a._seekLock && _activeTrackType[datum] === 'isha' && _activeDatum === datum) {
+          updatePlayerUI(datum, a.currentTime, a.duration);
+        }
+      });
+      a.addEventListener('loadedmetadata', () => {
+        if (_activeTrackType[datum] === 'isha' && _activeDatum === datum)
+          updatePlayerUI(datum, a.currentTime, a.duration);
+      });
+      a.addEventListener('ended', () => {
+        if (_activeDatum === datum) {
+          setBtns(datum, PLAY_SVG, false);
+          updateStickyPlayBtn(false);
+          updatePlayerUI(datum, 0, a.duration);
+        }
+        if (window._stopWaveDraw) window._stopWaveDraw();
+      });
+
+      ishaState[datum] = a;
+    }
+
+    const a = ishaState[datum];
+    if (a.paused) {
+      _stopAll(datum, 'isha'); // stop everything else first
+      const p = a.play();
+      if (p) p.catch(() => {});
+    } else {
+      a.pause();
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     const seekEl  = document.getElementById('sticky-seek');
     const thumbEl = document.getElementById('sticky-thumb');
@@ -3261,7 +3484,46 @@
       window._connectAnalyser = function() { startCSS(); };
     })();
 
-    const muteBtn = document.getElementById('sticky-mute');
+    // Segment control — Tarawih / Isha buttons
+    document.getElementById('sp-seg-tarawih')?.addEventListener('click', e => {
+      if (!_activeDatum) return;
+      // Pause isha if playing
+      const ishaAud = ishaState[_activeDatum];
+      if (ishaAud && !ishaAud.paused) {
+        ishaAud.pause();
+        if (window._stopWaveDraw) window._stopWaveDraw();
+      }
+      _switchTrack(_activeDatum, 'tarawih');
+      e.stopPropagation();
+    });
+    document.getElementById('sp-seg-isha')?.addEventListener('click', e => {
+      if (!_activeDatum || !ishaUrls[_activeDatum]) return;
+      // Pause tarawih if playing
+      const tAud = audioState[_activeDatum];
+      if (tAud && !tAud.paused) {
+        tAud.pause();
+        if (window._stopWaveDraw) window._stopWaveDraw();
+      }
+      _switchTrack(_activeDatum, 'isha');
+      e.stopPropagation();
+    });
+
+    // Position pill after layout
+    requestAnimationFrame(() => {
+      const btnT = document.getElementById('sp-seg-tarawih');
+      const pill = document.getElementById('sp-segment-pill');
+      const seg  = document.getElementById('sp-segment');
+      if (btnT && pill && seg) {
+        const segRect = seg.getBoundingClientRect();
+        const btnRect = btnT.getBoundingClientRect();
+        pill.style.transition = 'none';
+        pill.style.left  = (btnRect.left - segRect.left) + 'px';
+        pill.style.width = btnRect.width + 'px';
+        requestAnimationFrame(() => { pill.style.transition = ''; });
+      }
+    });
+
+        const muteBtn = document.getElementById('sticky-mute');
     if (muteBtn) muteBtn.addEventListener('click', e => {
       const isMuted = muteBtn.classList.toggle('muted');
       Object.values(audioState).forEach(a => { a.muted = isMuted; });
@@ -3280,7 +3542,20 @@
     });
 
     const playBtn = document.getElementById('sticky-play-btn');
-    if (playBtn) playBtn.addEventListener('click', e => { if (!_activeDatum) return; toggleAudio(_activeDatum); e.stopPropagation(); });
+    if (playBtn) playBtn.addEventListener('click', e => {
+      if (!_activeDatum) return;
+      const type = _activeTrackType[_activeDatum] || 'tarawih';
+      if (type === 'isha') {
+        _toggleIshaAudio(_activeDatum);
+      } else {
+        // Make sure isha is stopped before toggling tarawih
+        if (ishaState[_activeDatum] && !ishaState[_activeDatum].paused) {
+          ishaState[_activeDatum].pause();
+        }
+        toggleAudio(_activeDatum);
+      }
+      e.stopPropagation();
+    });
 
     // Återuppta AudioContext när appen kommer tillbaka i förgrunden
     // (iOS Safari suspenderar AudioContext vid skärmlås — men audio fortsätter spela)
@@ -3628,10 +3903,21 @@
   }
 
   function openPlayer(datum) {
+    // Stop isha from any previously active day
+    if (_activeDatum && _activeDatum !== datum) {
+      if (ishaState[_activeDatum] && !ishaState[_activeDatum].paused) {
+        ishaState[_activeDatum].pause();
+      }
+    }
     _activeDatum = datum;
+    // Segment control: reset to tarawih unless isha is actively playing for this datum
+    if (!ishaState[datum] || ishaState[datum].paused) {
+      _activeTrackType[datum] = 'tarawih';
+    }
     updatePlayingRow(datum);
     updateStickyControls();
     updateStickyPlayBtn(true);
+    showSegmentControl(datum);
 
     // MediaSession API — håller bakgrundsuppspelning aktiv på iOS/Android
     if ('mediaSession' in navigator) {
@@ -3709,7 +3995,7 @@
     _autoMiniTimer = setTimeout(() => { if (_activeDatum) miniSticky(); }, 5000);
   }
 
-  function closePlayer(datum) { _activeDatum = null; updatePlayingRow(null); hideSticky(); updateStickyPlayBtn(false); }
+  function closePlayer(datum) { _activeDatum = null; updatePlayingRow(null); hideSticky(); updateStickyPlayBtn(false); hideSegmentControl(); }
 
   // Håller koll på pågående play()-promises per datum för att förhindra race conditions
   const _playingPromise = {};
@@ -3734,14 +4020,17 @@
     _toggleBusy = true;
 
     try {
-      // Stoppa alla andra aktiva spår
+      // Stop ALL audio (tarawih + isha across all days) — only one can play at a time
+      _stopAll(datum, 'tarawih');
+      // Also stop other days' tarawih via closePlayer
       const others = Object.keys(audioState).filter(d => d !== datum);
       for (const d of others) {
-        if (audioState[d] && !audioState[d].paused) {
-          _stopAudio(d); // kör async utan att blockera
-          if (_activeDatum === d) closePlayer(d);
-        }
+        if (_activeDatum === d) closePlayer(d);
       }
+      // Reset track type to tarawih — table row click always means tarawih
+      _activeTrackType[datum] = 'tarawih';
+      // Update segment pill if player is open for this datum
+      if (_activeDatum === datum) _updateSegmentPill('tarawih');
 
       if (!audioState[datum]) {
         const a = new Audio();
@@ -3825,13 +4114,55 @@
 
   const basePath = window.location.pathname.split('/').slice(0, -1).join('/');
   const audioUrls = {};
+  const ishaUrls  = {}; // datum → isha mp3 URL (only populated if file exists)
+  const ishaState = {}; // datum → Audio object for isha track
+
   SCHEDULE.forEach(row => {
     const url = basePath + '/' + row.datum + '.mp3';
     audioUrls[row.datum] = url;
     fetch(url, { method: 'HEAD' })
       .then(res => { if (res.ok || res.status === 206) injectPlayButtons(row.datum); })
       .catch(() => { fetch(url).then(res => { if (res.ok) injectPlayButtons(row.datum); }).catch(() => {}); });
+
+    // Probe for isha track — datum-isha.mp3
+    const ishaUrl = basePath + '/' + row.datum + '-isha.mp3';
+    fetch(ishaUrl, { method: 'HEAD' })
+      .then(res => {
+        if (res.ok || res.status === 206) {
+          ishaUrls[row.datum] = ishaUrl;
+          markIshaAvailable(row.datum);
+        }
+      })
+      .catch(() => {});
   });
+
+  // Marks a row/card as having isha available (adds dot indicator)
+  function markIshaAvailable(datum) {
+    // Desktop row — add dot after imam chip
+    const tr = document.querySelector('tr[data-datum="' + datum + '"]');
+    if (tr) {
+      const chip = tr.querySelector('.imam-chip');
+      if (chip && !chip.querySelector('.isha-dot')) {
+        const dot = document.createElement('span');
+        dot.className = 'isha-dot';
+        dot.title = 'Isha tillgänglig';
+        chip.appendChild(dot);
+      }
+    }
+    // Mobile card — same
+    const card = document.querySelector('.day-card-mobile[data-datum="' + datum + '"]');
+    if (card) {
+      const chip = card.querySelector('.imam-chip');
+      if (chip && !chip.querySelector('.isha-dot')) {
+        const dot = document.createElement('span');
+        dot.className = 'isha-dot';
+        dot.title = 'Isha tillgänglig';
+        chip.appendChild(dot);
+      }
+    }
+    // If this datum is currently open in player, show segment control
+    if (_activeDatum === datum) showSegmentControl(datum);
+  }
 
   function applyLang(lang) {
     _currentLang = lang;
@@ -4700,6 +5031,19 @@
     </button>
     <div class="sp-drag-handle"></div>
 
+
+    <!-- Track floating pill — Tarawih / Isha -->
+    <div class="sp-segment-wrap" id="sp-segment-wrap">
+      <div class="sp-segment" id="sp-segment">
+        <div class="sp-segment-pill" id="sp-segment-pill"></div>
+        <button class="sp-segment-btn active" id="sp-seg-tarawih" data-track="tarawih">
+          <span class="sp-seg-icon">🌙</span> Tarawih
+        </button>
+        <button class="sp-segment-btn" id="sp-seg-isha" data-track="isha">
+          <span class="sp-seg-icon">⭐</span> Isha
+        </button>
+      </div>
+    </div>
 
     <!-- Metadata row -->
     <div class="sp-meta-row">
