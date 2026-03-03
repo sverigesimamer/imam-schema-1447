@@ -2536,7 +2536,7 @@
         <div class="np-footer-text">
           <div class="np-footer-dot"></div>
           Kollar efter nya ljud automatiskt</div>
-        <button id="push-notif-btn">
+        <button id="push-notif-btn" style="display:none">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span id="push-notif-label">Aktivera push-notiser</span>
         </button>
@@ -6803,7 +6803,7 @@
     }
   }
 
-    async function _initPush() {
+  async function _initPush() {
     const lbl = document.getElementById('push-notif-label');
     try {
       if (!('Notification' in window) || !('PushManager' in window)) {
@@ -6820,7 +6820,7 @@
       const swReg = await navigator.serviceWorker.ready;
       console.log('[Push] SW aktiv:', swReg.active?.scriptURL);
 
-     // Kolla om vi redan har en aktiv subscription
+      // Kolla om vi redan har en aktiv subscription
       let sub = await swReg.pushManager.getSubscription();
       if (!sub) {
         const appKey = _vapidToUint8(FCM_VAPID_KEY);
