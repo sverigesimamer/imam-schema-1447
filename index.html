@@ -3898,7 +3898,12 @@
     const rf = document.getElementById('sp-ring-fill');
     if (rf) rf.style.stroke = light;
     const ri = document.getElementById('sp-ring-inner');
-    if (ri) ri.style.background = 'linear-gradient(135deg, ' + lightenHex(base,-20) + ', ' + lightenHex(base,-40) + ')';
+    if (ri) {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      ri.style.background = isLight
+        ? 'linear-gradient(135deg, ' + base + ', ' + lightenHex(base, -25) + ')'
+        : 'linear-gradient(135deg, ' + lightenHex(base,-20) + ', ' + lightenHex(base,-40) + ')';
+    }
 
     // Mini artwork + progress
     const ma = document.getElementById('sp-mini-artwork');
