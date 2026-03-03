@@ -6802,6 +6802,20 @@
     }
   }
 
+  // Importerar VAPID-nyckel via SubtleCrypto (krävs av iOS Safari)
+  async function _importVapidKey(base64url) {
+    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
+    const binary = atob(padded);
+    const bytes  = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return await crypto.subtle.importKey(
+      'raw', bytes,
+      { name: 'ECDH', namedCurve: 'P-256' },
+      true, []
+    );
+  }
+
   async function _initPush() {
     const lbl = document.getElementById('push-notif-label');
     try {
@@ -6822,9 +6836,17 @@
       // Kolla om vi redan har en aktiv subscription
       let sub = await swReg.pushManager.getSubscription();
       if (!sub) {
+        // iOS kräver CryptoKey via SubtleCrypto, inte råa bytes
+        let appKey;
+        try {
+          appKey = await _importVapidKey(FCM_VAPID_KEY);
+        } catch {
+          // Fallback för webbläsare som accepterar råa bytes
+          appKey = _vapidToUint8(FCM_VAPID_KEY);
+        }
         sub = await swReg.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: _vapidToUint8(FCM_VAPID_KEY),
+          applicationServerKey: appKey,
         });
       }
       console.log('[Push] Subscription:', sub.endpoint.slice(0, 50));
