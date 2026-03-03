@@ -6791,11 +6791,21 @@
 
       if (Notification.permission === 'granted') {
         if (lbl) lbl.textContent = '⏳ Hämtar token...';
-        const swReg = await navigator.serviceWorker.ready;
-        _fcmToken = await getToken(messaging, {
-          vapidKey: FCM_VAPID_KEY,
-          serviceWorkerRegistration: swReg,
-        });
+
+        // Timeout om getToken hänger (vanligt på iOS)
+        const tokenPromise = (async () => {
+          const swReg = await navigator.serviceWorker.ready;
+          console.log('[FCM] SW redo:', swReg.active?.scriptURL);
+          return await getToken(messaging, {
+            vapidKey: FCM_VAPID_KEY,
+            serviceWorkerRegistration: swReg,
+          });
+        })();
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('getToken timeout — SW svarar inte')), 12000)
+        );
+
+        _fcmToken = await Promise.race([tokenPromise, timeoutPromise]);
         console.log('[FCM] Token:', _fcmToken);
         localStorage.setItem('fcm_token', _fcmToken);
         if (lbl) lbl.textContent = '⏳ Sparar...';
