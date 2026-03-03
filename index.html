@@ -6745,12 +6745,19 @@
   const FIRESTORE_URL   = "https://firestore.googleapis.com/v1/projects/sverigesimamer/databases/(default)/documents";
 
   // Konverterar VAPID-nyckel från base64url till Uint8Array
-  function _vapidToUint8(base64String) {
-    // Lägg till padding om det saknas
-    const p = (base64String + '===').slice(0, base64String.length + (4 - base64String.length % 4) % 4);
-    const base64 = p.replace(/-/g, '+').replace(/_/g, '/');
-    const raw = atob(base64);
-    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+  function _vapidToUint8(base64url) {
+    // base64url → base64 standard
+    let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    // Padding
+    while (base64.length % 4 !== 0) base64 += '=';
+    // Dekoda till binär sträng
+    const binaryStr = window.atob(base64);
+    // Konvertera till Uint8Array
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    return bytes;
   }
 
   // Sparar push-subscription till Firestore
