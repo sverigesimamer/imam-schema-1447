@@ -6812,7 +6812,7 @@
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     return await crypto.subtle.importKey(
       'raw', bytes,
-      { name: 'ECDH', namedCurve: 'P-256' },
+      { name: 'ECDSA', namedCurve: 'P-256' },   // ← RÄTT: ECDSA, inte ECDH
       true, []
     );
   }
