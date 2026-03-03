@@ -6758,7 +6758,7 @@
       .padEnd(base64url.length + (4 - base64url.length % 4) % 4, '=');
     const binary = atob(base64);
     const bytes  = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.codePointAt(i);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     return bytes;
   }
 
@@ -6803,21 +6803,7 @@
     }
   }
 
-  // Importerar VAPID-nyckel via SubtleCrypto (krävs av iOS Safari)
-  async function _importVapidKey(base64url) {
-    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
-    const binary = atob(padded);
-    const bytes  = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return await crypto.subtle.importKey(
-      'raw', bytes,
-      { name: 'ECDSA', namedCurve: 'P-256' },   // ← RÄTT: ECDSA, inte ECDH
-      true, []
-    );
-  }
-
-  async function _initPush() {
+    async function _initPush() {
     const lbl = document.getElementById('push-notif-label');
     try {
       if (!('Notification' in window) || !('PushManager' in window)) {
@@ -6834,17 +6820,10 @@
       const swReg = await navigator.serviceWorker.ready;
       console.log('[Push] SW aktiv:', swReg.active?.scriptURL);
 
-      // Kolla om vi redan har en aktiv subscription
+     // Kolla om vi redan har en aktiv subscription
       let sub = await swReg.pushManager.getSubscription();
       if (!sub) {
-        // iOS kräver CryptoKey via SubtleCrypto, inte råa bytes
-        let appKey;
-        try {
-          appKey = await _importVapidKey(FCM_VAPID_KEY);
-        } catch {
-          // Fallback för webbläsare som accepterar råa bytes
-          appKey = _vapidToUint8(FCM_VAPID_KEY);
-        }
+        const appKey = _vapidToUint8(FCM_VAPID_KEY);
         sub = await swReg.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: appKey,
