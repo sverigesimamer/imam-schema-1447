@@ -15,61 +15,42 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Hitta ny/ändrad MP3 och slå upp imam
+      - name: Hitta ny MP3 och slå upp imam från index.html
         id: mp3
         run: |
-          CHANGED=$(git diff --name-only --diff-filter=AM HEAD~1 HEAD | grep '\.mp3$' | grep -v '\-isha\.mp3$' || true)
+          CHANGED=$(git diff --name-only --diff-filter=AM HEAD~1 HEAD \
+            | grep '\.mp3$' | grep -v '\-isha\.mp3$' || true)
+
           if [ -z "$CHANGED" ]; then
             echo "Inga nya tarawih-MP3:er — avbryter"
             echo "skip=true" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          FIRST=$(echo "$CHANGED" | head -1)
-          NIGHT=$(basename "$FIRST" .mp3)
+          NIGHT=$(basename "$(echo "$CHANGED" | head -1)" .mp3)
 
-          # Imam-uppslagstabell
-          declare -A IMAMS
-          IMAMS["2026-02-17"]="Abdurrahman Sudani"
-          IMAMS["2026-02-18"]="Saed Magan"
-          IMAMS["2026-02-19"]="Noor"
-          IMAMS["2026-02-20"]="Abdul Qadir"
-          IMAMS["2026-02-21"]="Mohammed Haji"
-          IMAMS["2026-02-22"]="Abdurrahman Sudani"
-          IMAMS["2026-02-23"]="Abdurrahman Sudani"
-          IMAMS["2026-02-24"]="Saed Magan"
-          IMAMS["2026-02-25"]="Ibrahim Noor"
-          IMAMS["2026-02-26"]="Ibrahim Noor"
-          IMAMS["2026-02-27"]="Mohammed Haji"
-          IMAMS["2026-02-28"]="Saed Magan"
-          IMAMS["2026-03-01"]="Abdelsalam Nour"
-          IMAMS["2026-03-02"]="Saed Magan"
-          IMAMS["2026-03-03"]="Noor"
-          IMAMS["2026-03-04"]="Mohammed Haji"
-          IMAMS["2026-03-05"]="Saed Magan"
-          IMAMS["2026-03-06"]="Saed Magan"
-          IMAMS["2026-03-07"]="Yacquub"
-          IMAMS["2026-03-08"]="Yacquub"
-          IMAMS["2026-03-09"]="Noor"
-          IMAMS["2026-03-10"]="Mohammed Haji"
-          IMAMS["2026-03-11"]="Abdurrahman Sudani"
-          IMAMS["2026-03-12"]="Abdul Qadir"
-          IMAMS["2026-03-13"]="Hatem"
-          IMAMS["2026-03-14"]="Abdurrahman Sudani"
-          IMAMS["2026-03-15"]="Noor"
-          IMAMS["2026-03-16"]="Mohammed Haji"
-          IMAMS["2026-03-17"]="Yacquub"
-          IMAMS["2026-03-18"]="Noor"
+          # Läs imam direkt från SCHEDULE i index.html
+          IMAM=$(python3 - "$NIGHT" << 'PYEOF'
+          import re, sys
+          night = sys.argv[1]
+          html  = open('index.html', encoding='utf-8').read()
+          # Hitta raden med rätt datum och extrahera imamLabel
+          pattern = rf"imamLabel:'([^']+)'[^{{}}]*datum:'{re.escape(night)}'"
+          m = re.search(pattern, html)
+          if not m:
+              # Prova omvänd ordning (datum kan komma före imamLabel)
+              pattern2 = rf"datum:'{re.escape(night)}'[^{{}}]*imamLabel:'([^']+)'"
+              m = re.search(pattern2, html)
+          print(m.group(1) if m else "Imam")
+          PYEOF
+          )
 
-          IMAM="${IMAMS[$NIGHT]:-Imam}"
+          echo "night=$NIGHT" >> $GITHUB_OUTPUT
+          echo "imam=$IMAM"   >> $GITHUB_OUTPUT
+          echo "skip=false"   >> $GITHUB_OUTPUT
+          echo "Ny MP3: $NIGHT → Imam: $IMAM"
 
-          echo "file=$FIRST"     >> $GITHUB_OUTPUT
-          echo "night=$NIGHT"    >> $GITHUB_OUTPUT
-          echo "imam=$IMAM"      >> $GITHUB_OUTPUT
-          echo "skip=false"      >> $GITHUB_OUTPUT
-          echo "Ny MP3: $FIRST → Imam: $IMAM"
-
-      - name: Hämta OAuth2-token från service account
+      - name: Hämta OAuth2-token
         if: steps.mp3.outputs.skip != 'true'
         id: token
         run: |
@@ -78,48 +59,91 @@ jobs:
           TOKEN=$(python3 -c "
           from google.oauth2 import service_account
           import google.auth.transport.requests
-          creds = service_account.Credentials.from_service_account_file('/tmp/sa.json', scopes=['https://www.googleapis.com/auth/firebase.messaging'])
+          creds = service_account.Credentials.from_service_account_file(
+              '/tmp/sa.json',
+              scopes=['https://www.googleapis.com/auth/firebase.messaging',
+                      'https://www.googleapis.com/auth/datastore'])
           creds.refresh(google.auth.transport.requests.Request())
           print(creds.token)
           ")
           echo "access_token=$TOKEN" >> $GITHUB_OUTPUT
 
-      - name: Skicka FCM V1 push-notis
+      - name: Hämta tokens från Firestore och skicka push
         if: steps.mp3.outputs.skip != 'true'
         run: |
           NIGHT="${{ steps.mp3.outputs.night }}"
           IMAM="${{ steps.mp3.outputs.imam }}"
           PROJECT_ID="sverigesimamer"
-          SITE_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+          SITE_URL="https://sverigesimamer.github.io/imam-schema-1447"
           DEEP_LINK="${SITE_URL}/#natt=${NIGHT}"
           TOKEN="${{ steps.token.outputs.access_token }}"
 
-          HTTP_CODE=$(curl -s -o /tmp/fcm_resp.json -w "%{http_code}" -X POST \
-            "https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send" \
-            -H "Authorization: Bearer ${TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"message\": {
-                \"topic\": \"tarawih-new-audio\",
-                \"notification\": {
-                  \"title\": \"🎙️ Nytt Tarawih-ljud!\",
-                  \"body\": \"${IMAM}s recitation har laddats upp. Lyssna nu.\"
-                },
-                \"data\": {
-                  \"url\": \"${DEEP_LINK}\",
-                  \"night\": \"${NIGHT}\",
-                  \"imam\": \"${IMAM}\"
-                },
-                \"webpush\": {
-                  \"notification\": {
-                    \"icon\": \"${SITE_URL}/favicon.ico\",
-                    \"tag\": \"new-audio\",
-                    \"renotify\": \"true\"
-                  },
-                  \"fcm_options\": { \"link\": \"${DEEP_LINK}\" }
-                }
-              }
-            }")
+          python3 << PYEOF
+          import json, urllib.request, urllib.error
 
-          cat /tmp/fcm_resp.json
-          [ "$HTTP_CODE" = "200" ] && echo "✅ Push skickad: ${IMAM} / ${NIGHT}" || { echo "❌ HTTP $HTTP_CODE"; exit 1; }
+          # ── Hämta alla FCM-tokens från Firestore ──────────────
+          fs_url = "https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/fcm-tokens"
+          req = urllib.request.Request(fs_url, headers={"Authorization": "Bearer ${TOKEN}"})
+          with urllib.request.urlopen(req) as resp:
+              data = json.loads(resp.read())
+
+          documents = data.get("documents", [])
+          if not documents:
+              print("Inga prenumeranter än — inga notiser skickade")
+              exit(0)
+
+          print(f"Skickar till {len(documents)} enhet(er)...")
+
+          # ── Skicka FCM push till varje token ──────────────────
+          stale = []
+          for doc in documents:
+              fcm_token = doc.get("fields", {}).get("token", {}).get("stringValue", "")
+              if not fcm_token:
+                  continue
+
+              payload = json.dumps({
+                  "message": {
+                      "token": fcm_token,
+                      "notification": {
+                          "title": "🎙️ Nytt Tarawih-ljud!",
+                          "body":  "${IMAM}s recitation har laddats upp. Lyssna nu."
+                      },
+                      "data": {"url": "${DEEP_LINK}", "night": "${NIGHT}"},
+                      "webpush": {
+                          "notification": {
+                              "icon": "${SITE_URL}/favicon.ico",
+                              "tag": "new-audio",
+                              "renotify": "true"
+                          },
+                          "fcm_options": {"link": "${DEEP_LINK}"}
+                      }
+                  }
+              }).encode()
+
+              fcm_req = urllib.request.Request(
+                  f"https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send",
+                  data=payload,
+                  headers={"Authorization": "Bearer ${TOKEN}", "Content-Type": "application/json"}
+              )
+              try:
+                  with urllib.request.urlopen(fcm_req):
+                      print(f"  ✅ {fcm_token[:25]}...")
+              except urllib.error.HTTPError as e:
+                  body = e.read().decode()
+                  if "UNREGISTERED" in body or "INVALID_ARGUMENT" in body:
+                      stale.append(doc["name"])
+                      print(f"  ⚠️  Ogiltig token — raderas")
+                  else:
+                      print(f"  ❌ Fel {e.code}: {body[:80]}")
+
+          # ── Rensa ogiltiga tokens från Firestore ──────────────
+          for doc_name in stale:
+              del_req = urllib.request.Request(
+                  f"https://firestore.googleapis.com/v1/{doc_name}",
+                  method="DELETE",
+                  headers={"Authorization": "Bearer ${TOKEN}"}
+              )
+              with urllib.request.urlopen(del_req): pass
+
+          print(f"Klart. Skickade: {len(documents)-len(stale)}, Borttagna: {len(stale)}")
+          PYEOF
