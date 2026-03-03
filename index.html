@@ -6746,8 +6746,10 @@
 
   // Konverterar VAPID-nyckel från base64url till Uint8Array
   function _vapidToUint8(base64String) {
-    const p = base64String.replace(/-/g, '+').replace(/_/g, '/');
-    const raw = atob(p);
+    // Lägg till padding om det saknas
+    const p = (base64String + '===').slice(0, base64String.length + (4 - base64String.length % 4) % 4);
+    const base64 = p.replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
     return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
   }
 
