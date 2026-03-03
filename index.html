@@ -6740,95 +6740,38 @@
   // ══════════════════════════════════════════════════════════════
 
   // ── Konfiguration (fyll i efter Firebase-setup) ───────────────
-  const FCM_CONFIG = {
-    apiKey:            "AIzaSyA1YkZi9MPCHetCCG6XDyg2TA7AbadmT6k",
-    authDomain:        "sverigesimamer.firebaseapp.com",
-    projectId:         "sverigesimamer",
-    storageBucket:     "sverigesimamer.firebasestorage.app",
-    messagingSenderId: "860592398067",
-    appId:             "1:860592398067:web:3ae1c407c498eee39e6186",
-  };
+  // ── Web Push (VAPID) — ingen Firebase SDK behövs i appen ──────
   const FCM_VAPID_KEY   = "BPOBrPLoZVQ8U2reRfz2vqFmQh3kV-h8hbpEqjeMgfLNjzkgOqEzfOwwTAz_zwJykqJyjL9BRGB-QCx-DPkHbUc";
-  // Ersätt med ditt GitHub-repo och en PAT med repo-write scope
-  const FIRESTORE_URL = "https://firestore.googleapis.com/v1/projects/sverigesimamer/databases/(default)/documents";
-  // ──────────────────────────────────────────────────────────────
+  const FIRESTORE_URL   = "https://firestore.googleapis.com/v1/projects/sverigesimamer/databases/(default)/documents";
 
-  let _fcmToken = null;
+  // Konverterar VAPID-nyckel från base64url till Uint8Array
+  function _vapidToUint8(base64String) {
+    const p = base64String.replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(p);
+    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+  }
 
-  // Sparar FCM-token till Firestore — ingen känslig nyckel behövs
-  async function _saveTokenToRepo(token) {
+  // Sparar push-subscription till Firestore
+  async function _saveTokenToRepo(subscription) {
     try {
-      const safeId = btoa(token).replace(/[^a-zA-Z0-9]/g, '').slice(0, 100);
+      const subJson = subscription.toJSON();
+      const safeId  = btoa(subJson.endpoint).replace(/[^a-zA-Z0-9]/g, '').slice(0, 100);
       await fetch(`${FIRESTORE_URL}/fcm-tokens/${safeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fields: {
-            token:     { stringValue: token },
+            endpoint:  { stringValue: subJson.endpoint },
+            p256dh:    { stringValue: subJson.keys?.p256dh || '' },
+            auth:      { stringValue: subJson.keys?.auth   || '' },
             createdAt: { stringValue: new Date().toISOString() },
+            type:      { stringValue: 'webpush' },
           }
         }),
       });
-      console.log('[FCM] Token sparad i Firestore');
+      console.log('[Push] Subscription sparad i Firestore');
     } catch (err) {
-      console.warn('[FCM] Kunde inte spara token:', err);
-    }
-  }
-
-  async function _initFCM() {
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-    const lbl = document.getElementById('push-notif-label');
-
-    try {
-      if (lbl) lbl.textContent = '⏳ Laddar Firebase...';
-      const [{ initializeApp }, { getMessaging, getToken, onMessage }] = await Promise.all([
-        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
-        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js'),
-      ]);
-
-      const app       = initializeApp(FCM_CONFIG);
-      const messaging = getMessaging(app);
-
-      if (Notification.permission === 'granted') {
-        if (lbl) lbl.textContent = '⏳ Hämtar token...';
-
-        // Timeout om getToken hänger (vanligt på iOS)
-        const tokenPromise = (async () => {
-          const swReg = await navigator.serviceWorker.ready;
-          console.log('[FCM] SW redo:', swReg.active?.scriptURL);
-          return await getToken(messaging, {
-            vapidKey: FCM_VAPID_KEY,
-            serviceWorkerRegistration: swReg,
-          });
-        })();
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('getToken timeout — SW svarar inte')), 12000)
-        );
-
-        _fcmToken = await Promise.race([tokenPromise, timeoutPromise]);
-        console.log('[FCM] Token:', _fcmToken);
-        localStorage.setItem('fcm_token', _fcmToken);
-        if (lbl) lbl.textContent = '⏳ Sparar...';
-        await _saveTokenToRepo(_fcmToken);
-        _updatePushBtn('active');
-      }
-
-      // Hantera push i förgrunden
-      onMessage(messaging, (payload) => {
-        const t = T[_currentLang] || T['sv'];
-        const title = payload.notification?.title || t.pushNewTitle;
-        const body  = payload.notification?.body  || t.pushNewBody;
-        navigator.serviceWorker.ready.then(reg => {
-          reg.showNotification(title, {
-            body, icon: 'favicon.ico', badge: 'favicon.ico',
-            tag: 'new-audio', renotify: true,
-            data: { url: window.location.href },
-          });
-        });
-      });
-
-    } catch (err) {
-      console.warn('[FCM] Init misslyckades:', err);
+      console.warn('[Push] Kunde inte spara subscription:', err);
     }
   }
 
@@ -6849,48 +6792,61 @@
     }
   }
 
-  // Push-knapp click
-  document.addEventListener('click', async e => {
-    if (!e.target.closest('#push-notif-btn')) return;
-    const btn = document.getElementById('push-notif-btn');
-    if (btn.classList.contains('push-active') || btn.classList.contains('push-denied')) return;
-
-    // Visa laddningsindikator
+  async function _initPush() {
     const lbl = document.getElementById('push-notif-label');
-    if (lbl) lbl.textContent = '⏳ Aktiverar...';
-
     try {
       if (!('Notification' in window) || !('PushManager' in window)) {
         if (lbl) lbl.textContent = '❌ Stöds ej i denna webbläsare';
         return;
       }
-      // Om redan granted — kör direkt utan att fråga igen
-      let perm = Notification.permission;
-      if (perm === 'default') {
-        perm = await Notification.requestPermission();
-      }
 
-      if (perm === 'granted') {
-        await _initFCM();
-      } else {
-        _updatePushBtn('denied');
+      if (lbl) lbl.textContent = '⏳ Begär tillstånd...';
+      let perm = Notification.permission;
+      if (perm === 'default') perm = await Notification.requestPermission();
+      if (perm !== 'granted') { _updatePushBtn('denied'); return; }
+
+      if (lbl) lbl.textContent = '⏳ Prenumererar...';
+      const swReg = await navigator.serviceWorker.ready;
+      console.log('[Push] SW aktiv:', swReg.active?.scriptURL);
+
+      // Kolla om vi redan har en aktiv subscription
+      let sub = await swReg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await swReg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: _vapidToUint8(FCM_VAPID_KEY),
+        });
       }
+      console.log('[Push] Subscription:', sub.endpoint.slice(0, 50));
+
+      if (lbl) lbl.textContent = '⏳ Sparar...';
+      await _saveTokenToRepo(sub);
+      _updatePushBtn('active');
+
     } catch (err) {
-      console.error('[Push] Klick-fel:', err);
-      if (lbl) lbl.textContent = '❌ Fel: ' + err.message;
+      console.error('[Push] Fel:', err);
+      const lbl2 = document.getElementById('push-notif-label');
+      if (lbl2) lbl2.textContent = '❌ Fel: ' + err.message;
     }
+  }
+
+  // Push-knapp click
+  document.addEventListener('click', async e => {
+    if (!e.target.closest('#push-notif-btn')) return;
+    const btn = document.getElementById('push-notif-btn');
+    if (btn.classList.contains('push-active') || btn.classList.contains('push-denied')) return;
+    await _initPush();
   });
 
   // Init vid laddning — dölj knappen om push inte stöds
   window.addEventListener('load', () => {
     const pushBtn = document.getElementById('push-notif-btn');
     if (!('Notification' in window) || !('PushManager' in window)) {
-      // Push stöds inte (desktop Safari, äldre webbläsare, icke-standalone iOS)
       if (pushBtn) pushBtn.style.display = 'none';
       return;
     }
     if (Notification.permission === 'granted') {
-      _initFCM();
+      _initPush();
     } else if (Notification.permission === 'denied') {
       _updatePushBtn('denied');
     }
