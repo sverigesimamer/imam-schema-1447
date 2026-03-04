@@ -3830,6 +3830,9 @@
     _activeTrackType[datum] = type;
     _updateSegmentPill(type);
 
+    // ★ Uppdatera spelarens metadata baserat på spår-typ
+    _updatePlayerMeta(datum, type);
+
     // Update progress bar to new track's position
     const nextAudio = type === 'isha' ? ishaState[datum] : audioState[datum];
     if (nextAudio) {
@@ -3838,6 +3841,42 @@
     } else {
       updatePlayerUI(datum, 0, 0);
       setBtns(datum, PLAY_SVG, false);
+    }
+  }
+
+  // ★ Uppdaterar spelarens imam-namn, initialer, surah-info baserat på tarawih/isha
+  function _updatePlayerMeta(datum, type) {
+    const row = SCHEDULE.find(r => r.datum === datum);
+    if (!row) return;
+
+    const spImam   = document.getElementById('sp-imam-name');
+    const spSub    = document.getElementById('sp-meta-sub');
+    const miniImam = document.getElementById('sp-mini-imam');
+    const miniSub  = document.getElementById('sp-mini-sub');
+    const nightStr = (T[_currentLang].night || 'Natt') + ' ' + row.day;
+
+    if (type === 'isha' && ishaImams[datum]) {
+      // Isha-läge: visa isha-imamens namn, "Isha" som surah, inga ayah-nummer
+      const ishaName = ishaImams[datum];
+      if (spImam)   spImam.textContent  = ishaName;
+      if (spSub)    spSub.innerHTML     = '<span class="sp-accent" id="sp-night-label">' + nightStr + '</span> · Isha';
+      if (miniImam) miniImam.textContent = ishaName;
+      if (miniSub)  miniSub.textContent  = nightStr + ' · Isha';
+      // Uppdatera initialer och färg för isha-imam
+      const ishaInitials = ishaName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const ini  = document.getElementById('sp-initials');
+      const mini = document.getElementById('sp-mini-initials');
+      if (ini)  ini.textContent  = ishaInitials;
+      if (mini) mini.textContent = ishaInitials;
+      // Behåll en neutral färg för isha (teal)
+      applyImamColor('_isha', ishaName, row.day);
+    } else {
+      // Tarawih-läge: återställ till vanlig metadata
+      if (spImam)   spImam.textContent  = row.imamLabel;
+      if (spSub)    spSub.innerHTML     = '<span class="sp-accent" id="sp-night-label">' + nightStr + '</span> · ' + row.surahs + (row.tooltip ? '<br><span style="font-size:0.62rem;color:rgba(255,255,255,0.38);letter-spacing:0.02em;">' + row.tooltip + '</span>' : '');
+      if (miniImam) miniImam.textContent = row.imamLabel;
+      if (miniSub)  miniSub.textContent  = nightStr;
+      applyImamColor(row.imam, row.imamLabel, row.day);
     }
   }
 
@@ -3872,6 +3911,7 @@
     abdelsalam:  '#7b3f00',
     hatem:       '#2d6a4f',
     ibrahim:     '#1a3a6b',
+    _isha:       '#5a7a8a',  // Neutral färg för isha-recitörer
   };
 
   function imamInitials(label) {
@@ -4776,23 +4816,16 @@
 
     // Ny design — uppdatera metadata-rad och imam-färger
     if (row) {
-      const spImam  = document.getElementById('sp-imam-name');
-      const spSub   = document.getElementById('sp-meta-sub');
-      const miniImam = document.getElementById('sp-mini-imam');
-      const miniSub  = document.getElementById('sp-mini-sub');
       const prevLbl  = document.getElementById('sp-prev-label');
       const nextLbl  = document.getElementById('sp-next-label');
-      const nightStr = (T[_currentLang].night || 'Natt') + ' ' + row.day;
-      if (spImam)  spImam.textContent  = row.imamLabel;
-      if (spSub)   spSub.innerHTML     = '<span class="sp-accent" id="sp-night-label">' + nightStr + '</span> · ' + row.surahs + (row.tooltip ? '<br><span style="font-size:0.62rem;color:rgba(255,255,255,0.38);letter-spacing:0.02em;">' + row.tooltip + '</span>' : '');
-      if (miniImam) miniImam.textContent = row.imamLabel;
-      if (miniSub)  miniSub.textContent  = nightStr;
       // Prev/next labels
       const prevRow = SCHEDULE[idx-1];
       const nextRow = SCHEDULE[idx+1];
       if (prevLbl) prevLbl.textContent = prevRow ? (T[_currentLang].night||'Natt')+' '+prevRow.day : '';
       if (nextLbl) nextLbl.textContent = nextRow ? (T[_currentLang].night||'Natt')+' '+nextRow.day : '';
-      applyImamColor(row.imam, row.imamLabel, row.day);
+      // ★ Använd track-medveten metadata (isha vs tarawih)
+      const currentType = _activeTrackType[_activeDatum] || 'tarawih';
+      _updatePlayerMeta(_activeDatum, currentType);
       // Uppdatera hjärta i spelaren
       const spFav = document.getElementById('sp-fav-btn');
       if (spFav) {
@@ -5082,6 +5115,7 @@
   const audioUrls = {};
   const ishaUrls  = {};
   const ishaState = {};
+  const ishaImams = {};  // datum → imam name extracted from isha filename
 
   // Kontrollera om en URL är tillgänglig — via cache (offline) eller nätverk (online)
   async function _checkAudioAvailable(url) {
@@ -5109,13 +5143,55 @@
     audioUrls[row.datum] = url;
     _checkAudioAvailable(url).then(ok => { if (ok) injectPlayButtons(row.datum); });
 
-    const ishaUrl = basePath + '/' + row.datum + '-isha.mp3';
-    _checkAudioAvailable(ishaUrl).then(ok => {
-      if (ok) {
-        ishaUrls[row.datum] = ishaUrl;
-        markIshaAvailable(row.datum);
+    // Isha: stöder både nya formatet (2026-03-04-isha-Halil.mp3) och gamla (2026-03-04-isha.mp3)
+    // Ny logik: sök efter filer med datum-isha- prefix via HEAD-request, fallback till enkelt namn
+    (async function checkIsha(datum) {
+      // Försök nya formatet först: hämta listan via fetch av directory (GitHub Pages)
+      // Fallback: testa gamla formatet
+      const oldUrl = basePath + '/' + datum + '-isha.mp3';
+
+      // Försök hitta isha med imam-namn i filnamnet
+      // Vi gör en HEAD på index-sidan och letar i HTML efter isha-länk för detta datum
+      // Enklare approach: testa om det finns en -isha.mp3 eller -isha-*.mp3
+      // GitHub Pages har inget directory listing, så vi parsar HTML:en själv
+      const ishaLinks = document.querySelectorAll('a[href*="' + datum + '-isha"]');
+      
+      // Alternativ: leta i alla kända element — men enklast är att scanna via GitHub API
+      // Vi löser det pragmatiskt: index.html kan innehålla ett dolt data-attribut,
+      // ELLER vi testar en lista av kända imamer
+
+      // Pragmatisk lösning: prova gamla formatet först, sen kolla GitHub Contents API
+      let foundUrl = null;
+      let ishaImam = null;
+
+      // 1. Kolla om nya formatet finns via GitHub Contents API (fungerar på GitHub Pages)
+      try {
+        const ghApi = 'https://api.github.com/repos/sverigesimamer/imam-schema-1447/contents/';
+        const res = await fetch(ghApi, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+        if (res.ok) {
+          const files = await res.json();
+          const ishaFile = files.find(f => f.name.startsWith(datum + '-isha') && f.name.endsWith('.mp3'));
+          if (ishaFile) {
+            foundUrl = basePath + '/' + ishaFile.name;
+            // Extrahera imam-namn: "2026-03-04-isha-Halil.mp3" → "Halil"
+            const match = ishaFile.name.match(/\-isha\-(.+)\.mp3$/i);
+            if (match) ishaImam = decodeURIComponent(match[1]).replace(/[-_]/g, ' ');
+          }
+        }
+      } catch(e) { /* GitHub API rate limit eller offline — fallback */ }
+
+      // 2. Fallback: testa gamla formatet
+      if (!foundUrl) {
+        const ok = await _checkAudioAvailable(oldUrl);
+        if (ok) foundUrl = oldUrl;
       }
-    });
+
+      if (foundUrl) {
+        ishaUrls[datum] = foundUrl;
+        if (ishaImam) ishaImams[datum] = ishaImam;
+        markIshaAvailable(datum);
+      }
+    })(row.datum);
   });
 
   // Marks a row/card as having isha available (adds dot indicator)
@@ -6524,9 +6600,8 @@
     _setDlState('loading');
     const datum    = _activeDatum;
     const urls = [audioUrls[datum]];
-    // Lägg alltid till isha-URL — SW ignorerar tyst om filen inte finns (404)
-    const ishaUrl = basePath + '/' + datum + '-isha.mp3';
-    urls.push(ishaUrl);
+    // Lägg till isha-URL om den finns (dynamiskt filnamn med imam-namn)
+    if (ishaUrls[datum]) urls.push(ishaUrls[datum]);
 
     const ctrl = navigator.serviceWorker && navigator.serviceWorker.controller;
     if (ctrl) {
@@ -6547,11 +6622,13 @@
           }
           // Isha — frivillig, tyst fel om den inte finns
           try {
-            const ishaFallbackUrl = basePath + '/' + datum + '-isha.mp3';
-            const ishaExisting = await cache.match(ishaFallbackUrl);
-            if (!ishaExisting) {
-              const ishaResp = await fetch(ishaFallbackUrl);
-              if (ishaResp.ok) await cache.put(ishaFallbackUrl, ishaResp.clone());
+            const ishaFallbackUrl = ishaUrls[datum];
+            if (ishaFallbackUrl) {
+              const ishaExisting = await cache.match(ishaFallbackUrl);
+              if (!ishaExisting) {
+                const ishaResp = await fetch(ishaFallbackUrl);
+                if (ishaResp.ok) await cache.put(ishaFallbackUrl, ishaResp.clone());
+              }
             }
           } catch {}
           _onCacheDone(datum);
