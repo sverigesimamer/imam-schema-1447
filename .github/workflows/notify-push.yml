@@ -1,0 +1,30 @@
+name: Send Push on New Audio
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '*.mp3'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send push notification
+        run: |
+          # Extract the MP3 filename(s) from the commit
+          FILES=$(echo '${{ toJSON(github.event.commits[0].added) }}' | tr -d '[]"' | tr ',' '\n' | grep '\.mp3$' || true)
+          
+          if [ -z "$FILES" ]; then
+            echo "No new MP3 files found, skipping."
+            exit 0
+          fi
+          
+          echo "New audio detected: $FILES"
+          
+          curl -X POST "${{ secrets.PUSH_FUNCTION_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "title": "🎙️ Nytt Tarawih-ljud!",
+              "body": "En ny recitation har laddats upp. Lyssna nu."
+            }'
