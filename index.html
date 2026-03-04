@@ -3855,9 +3855,9 @@
     const miniSub  = document.getElementById('sp-mini-sub');
     const nightStr = (T[_currentLang].night || 'Natt') + ' ' + row.day;
 
-    if (type === 'isha' && ishaImams[datum]) {
-      // Isha-läge: visa isha-imamens namn, "Isha" som surah, inga ayah-nummer
-      const ishaName = ishaImams[datum];
+    if (type === 'isha') {
+      // Isha-läge: visa isha-imamens namn om det finns, annars bara "Isha"
+      const ishaName = ishaImams[datum] || 'Isha';
       if (spImam)   spImam.textContent  = ishaName;
       if (spSub)    spSub.innerHTML     = '<span class="sp-accent" id="sp-night-label">' + nightStr + '</span> · Isha';
       if (miniImam) miniImam.textContent = ishaName;
