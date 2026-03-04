@@ -27,40 +27,6 @@ jobs:
 
           echo "New audio files: $ADDED"
 
-          # Schedule mapping: datum -> day number, imam name, surahs
-          declare -A DAY_MAP IMAM_MAP SURAH_MAP
-          DAY_MAP["2026-02-17"]=1   IMAM_MAP["2026-02-17"]="Abdurrahman Sudani"  SURAH_MAP["2026-02-17"]="Al-Baqarah"
-          DAY_MAP["2026-02-18"]=2   IMAM_MAP["2026-02-18"]="Saed Magan"          SURAH_MAP["2026-02-18"]="Al-Baqarah"
-          DAY_MAP["2026-02-19"]=3   IMAM_MAP["2026-02-19"]="Noor"                SURAH_MAP["2026-02-19"]="Al-Baqarah"
-          DAY_MAP["2026-02-20"]=4   IMAM_MAP["2026-02-20"]="Abdul Qadir"         SURAH_MAP["2026-02-20"]="Al-Baqarah"
-          DAY_MAP["2026-02-21"]=5   IMAM_MAP["2026-02-21"]="Mohammed Haji"       SURAH_MAP["2026-02-21"]="Al-Baqarah, Ali Imran"
-          DAY_MAP["2026-02-22"]=6   IMAM_MAP["2026-02-22"]="Abdurrahman Sudani"  SURAH_MAP["2026-02-22"]="Ali Imran"
-          DAY_MAP["2026-02-23"]=7   IMAM_MAP["2026-02-23"]="Abdurrahman Sudani"  SURAH_MAP["2026-02-23"]="Ali Imran"
-          DAY_MAP["2026-02-24"]=8   IMAM_MAP["2026-02-24"]="Saed Magan"          SURAH_MAP["2026-02-24"]="Ali Imran, An-Nisa"
-          DAY_MAP["2026-02-25"]=9   IMAM_MAP["2026-02-25"]="Ibrahim Noor"        SURAH_MAP["2026-02-25"]="An-Nisa"
-          DAY_MAP["2026-02-26"]=10  IMAM_MAP["2026-02-26"]="Ibrahim Noor"        SURAH_MAP["2026-02-26"]="An-Nisa"
-          DAY_MAP["2026-02-27"]=11  IMAM_MAP["2026-02-27"]="Mohammed Haji"       SURAH_MAP["2026-02-27"]="An-Nisa, Fatir"
-          DAY_MAP["2026-02-28"]=12  IMAM_MAP["2026-02-28"]="Saed Magan"          SURAH_MAP["2026-02-28"]="Fatir, Ya-Sin, As-Saffat"
-          DAY_MAP["2026-03-01"]=13  IMAM_MAP["2026-03-01"]="Abdelsalam Nour"     SURAH_MAP["2026-03-01"]="As-Saffat, Sad"
-          DAY_MAP["2026-03-02"]=14  IMAM_MAP["2026-03-02"]="Saed Magan"          SURAH_MAP["2026-03-02"]="Az-Zumar"
-          DAY_MAP["2026-03-03"]=15  IMAM_MAP["2026-03-03"]="Noor"                SURAH_MAP["2026-03-03"]="Ghafir"
-          DAY_MAP["2026-03-04"]=16  IMAM_MAP["2026-03-04"]="Mohammed Haji"       SURAH_MAP["2026-03-04"]="Fussilat, Ash-Shura"
-          DAY_MAP["2026-03-05"]=17  IMAM_MAP["2026-03-05"]="Saed Magan"          SURAH_MAP["2026-03-05"]="Ash-Shura, Az-Zukhruf"
-          DAY_MAP["2026-03-06"]=18  IMAM_MAP["2026-03-06"]="Saed Magan"          SURAH_MAP["2026-03-06"]="Ad-Dukhan, Al-Jathiyah, Al-Ahqaf"
-          DAY_MAP["2026-03-07"]=19  IMAM_MAP["2026-03-07"]="Yacquub"             SURAH_MAP["2026-03-07"]="Muhammad, Al-Fath"
-          DAY_MAP["2026-03-08"]=20  IMAM_MAP["2026-03-08"]="Yacquub"             SURAH_MAP["2026-03-08"]="Al-Hujurat, Qaf, Adh-Dhariyat"
-          DAY_MAP["2026-03-09"]=21  IMAM_MAP["2026-03-09"]="Noor"                SURAH_MAP["2026-03-09"]="At-Tur, An-Najm, Al-Qamar"
-          DAY_MAP["2026-03-10"]=22  IMAM_MAP["2026-03-10"]="Mohammed Haji"       SURAH_MAP["2026-03-10"]="Ar-Rahman, Al-Waqiah, Al-Hadid"
-          DAY_MAP["2026-03-11"]=23  IMAM_MAP["2026-03-11"]="Abdurrahman Sudani"  SURAH_MAP["2026-03-11"]="Al-Hadid, Al-Mujadilah, Al-Hashr"
-          DAY_MAP["2026-03-12"]=24  IMAM_MAP["2026-03-12"]="Abdul Qadir"         SURAH_MAP["2026-03-12"]="Al-Mumtahanah – At-Taghabun"
-          DAY_MAP["2026-03-13"]=25  IMAM_MAP["2026-03-13"]="Hatem"               SURAH_MAP["2026-03-13"]="At-Talaq – Al-Qalam"
-          DAY_MAP["2026-03-14"]=26  IMAM_MAP["2026-03-14"]="Abdurrahman Sudani"  SURAH_MAP["2026-03-14"]="Al-Haqqah – Al-Muzzammil"
-          DAY_MAP["2026-03-15"]=27  IMAM_MAP["2026-03-15"]="Noor"                SURAH_MAP["2026-03-15"]="Al-Muddaththir – An-Naba"
-          DAY_MAP["2026-03-16"]=28  IMAM_MAP["2026-03-16"]="Mohammed Haji"       SURAH_MAP["2026-03-16"]="An-Naziat – Al-Ala"
-          DAY_MAP["2026-03-17"]=29  IMAM_MAP["2026-03-17"]="Yacquub"             SURAH_MAP["2026-03-17"]="Al-Ghashiyah – An-Nas"
-          DAY_MAP["2026-03-18"]=30  IMAM_MAP["2026-03-18"]="Noor"                SURAH_MAP["2026-03-18"]="Al-Baqarah"
-
-          # Process each new MP3 file
           for FILE in $ADDED; do
             # Skip isha files (e.g. 2026-03-04-isha.mp3)
             if echo "$FILE" | grep -q "\-isha"; then
@@ -72,18 +38,20 @@ jobs:
             DATUM=$(basename "$FILE" .mp3)
             echo "Processing: $FILE (datum=$DATUM)"
 
-            NATT="${DAY_MAP[$DATUM]}"
-            IMAM="${IMAM_MAP[$DATUM]}"
-            SURAH="${SURAH_MAP[$DATUM]}"
+            # Parse SCHEDULE from index.html to get metadata for this datum
+            LINE=$(grep -oP "\{day:\d+.*?\}" index.html | grep "datum:'$DATUM'" || true)
 
-            if [ -z "$NATT" ]; then
-              echo "Unknown datum: $DATUM, sending generic notification"
-              TITLE="🎙️ Nytt Tarawih-ljud!"
-              BODY="En ny recitation har laddats upp. Lyssna nu."
+            if [ -z "$LINE" ]; then
+              echo "Datum $DATUM not found in SCHEDULE, sending generic notification"
+              TITLE="🔊 Låt Qur'anen fylla ditt hjärta"
+              BODY="Kvällens Tarawih är nu uppladdad. Lyssna och reflektera över Allahs ord."
               URL="https://sverigesimamer.github.io/imam-schema-1447/"
             else
-              TITLE="🎙️ Natt ${NATT} — ${IMAM}"
-              BODY="Surah ${SURAH}. Lyssna nu!"
+              NATT=$(echo "$LINE" | grep -oP "day:\K\d+")
+              IMAM=$(echo "$LINE" | grep -oP "imamLabel:'\K[^']+")
+
+              TITLE="🔊 Låt Qur'anen fylla ditt hjärta"
+              BODY="Kvällens Tarawih med ${IMAM} är nu uppladdad. Lyssna och reflektera över Allahs ord."
               URL="https://sverigesimamer.github.io/imam-schema-1447/?natt=${NATT}"
             fi
 
