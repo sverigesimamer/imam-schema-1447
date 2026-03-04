@@ -5144,44 +5144,39 @@
     _checkAudioAvailable(url).then(ok => { if (ok) injectPlayButtons(row.datum); });
 
     // Isha: stöder både nya formatet (2026-03-04-isha-Halil.mp3) och gamla (2026-03-04-isha.mp3)
-    // Ny logik: sök efter filer med datum-isha- prefix via HEAD-request, fallback till enkelt namn
-    (async function checkIsha(datum) {
-      // Försök nya formatet först: hämta listan via fetch av directory (GitHub Pages)
-      // Fallback: testa gamla formatet
-      const oldUrl = basePath + '/' + datum + '-isha.mp3';
+    // Imam-namn extraheras från filnamnet automatiskt
+  });
 
-      // Försök hitta isha med imam-namn i filnamnet
-      // Vi gör en HEAD på index-sidan och letar i HTML efter isha-länk för detta datum
-      // Enklare approach: testa om det finns en -isha.mp3 eller -isha-*.mp3
-      // GitHub Pages har inget directory listing, så vi parsar HTML:en själv
-      const ishaLinks = document.querySelectorAll('a[href*="' + datum + '-isha"]');
-      
-      // Alternativ: leta i alla kända element — men enklast är att scanna via GitHub API
-      // Vi löser det pragmatiskt: index.html kan innehålla ett dolt data-attribut,
-      // ELLER vi testar en lista av kända imamer
+  // ★ Hämta fillistan EN gång från GitHub API, sen matcha isha-filer
+  (async function detectAllIsha() {
+    let fileList = null;
 
-      // Pragmatisk lösning: prova gamla formatet först, sen kolla GitHub Contents API
+    // Försök hämta fillistan från GitHub API (en enda request)
+    try {
+      const ghApi = 'https://api.github.com/repos/sverigesimamer/imam-schema-1447/contents/';
+      const res = await fetch(ghApi, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+      if (res.ok) fileList = await res.json();
+    } catch(e) { console.warn('[Isha] GitHub API ej tillgänglig:', e); }
+
+    for (const row of SCHEDULE) {
+      const datum = row.datum;
       let foundUrl = null;
       let ishaImam = null;
 
-      // 1. Kolla om nya formatet finns via GitHub Contents API (fungerar på GitHub Pages)
-      try {
-        const ghApi = 'https://api.github.com/repos/sverigesimamer/imam-schema-1447/contents/';
-        const res = await fetch(ghApi, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
-        if (res.ok) {
-          const files = await res.json();
-          const ishaFile = files.find(f => f.name.startsWith(datum + '-isha') && f.name.endsWith('.mp3'));
-          if (ishaFile) {
-            foundUrl = basePath + '/' + ishaFile.name;
-            // Extrahera imam-namn: "2026-03-04-isha-Halil.mp3" → "Halil"
-            const match = ishaFile.name.match(/\-isha\-(.+)\.mp3$/i);
-            if (match) ishaImam = decodeURIComponent(match[1]).replace(/[-_]/g, ' ');
-          }
+      if (fileList) {
+        // Sök i fillistan efter isha-fil för detta datum
+        const ishaFile = fileList.find(f => f.name.startsWith(datum + '-isha') && f.name.endsWith('.mp3'));
+        if (ishaFile) {
+          foundUrl = basePath + '/' + ishaFile.name;
+          // Extrahera imam-namn: "2026-03-03-isha-Halil-Ibrahim.mp3" → "Halil Ibrahim"
+          const match = ishaFile.name.match(/\-isha\-(.+)\.mp3$/i);
+          if (match) ishaImam = decodeURIComponent(match[1]).replace(/[-_]/g, ' ');
         }
-      } catch(e) { /* GitHub API rate limit eller offline — fallback */ }
+      }
 
-      // 2. Fallback: testa gamla formatet
+      // Fallback: testa gamla formatet utan imam-namn
       if (!foundUrl) {
+        const oldUrl = basePath + '/' + datum + '-isha.mp3';
         const ok = await _checkAudioAvailable(oldUrl);
         if (ok) foundUrl = oldUrl;
       }
@@ -5191,8 +5186,8 @@
         if (ishaImam) ishaImams[datum] = ishaImam;
         markIshaAvailable(datum);
       }
-    })(row.datum);
-  });
+    }
+  })();
 
   // Marks a row/card as having isha available (adds dot indicator)
   function markIshaAvailable(datum) {
