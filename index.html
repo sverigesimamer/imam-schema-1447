@@ -3890,6 +3890,116 @@
     _isha:       '#5a7a8a',  // Neutral färg för isha-recitörer
   };
 
+  // ══════════════════════════════════════════════════════════════
+  //  MediaSession — registrera handlers EN gång vid sidladdning
+  //  så att PWA:n "äger" sessionen och iOS inte tappar kopplingen.
+  // ══════════════════════════════════════════════════════════════
+  (function initMediaSession() {
+    if (!('mediaSession' in navigator)) return;
+
+    // Sätt default metadata direkt — gör att PWA:n tar över sessionen
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'Tarawih',
+        artist: 'Sveriges Imamer',
+        album: 'Tarawih Kampingehallen 2026',
+      });
+    } catch(e) {}
+
+    // Hjälpfunktion: hämta aktuellt ljud (tarawih eller isha)
+    function _getActiveAudio() {
+      if (!_activeDatum) return null;
+      // _activeTrackType och ishaState deklareras längre ned i samma scope,
+      // men dessa handlers körs bara efter användarinteraktion.
+      const trackType = _activeTrackType[_activeDatum];
+      if (trackType === 'isha' && ishaState[_activeDatum]) {
+        return ishaState[_activeDatum];
+      }
+      return audioState[_activeDatum] || null;
+    }
+
+    // Play — återuppta aktuellt ljud
+    navigator.mediaSession.setActionHandler('play', () => {
+      const a = _getActiveAudio();
+      if (a && a.paused) {
+        a.play().catch(() => {});
+        navigator.mediaSession.playbackState = 'playing';
+      }
+    });
+
+    // Pause
+    navigator.mediaSession.setActionHandler('pause', () => {
+      const a = _getActiveAudio();
+      if (a && !a.paused) {
+        a.pause();
+        navigator.mediaSession.playbackState = 'paused';
+      }
+    });
+
+    // Skip framåt 30s
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      const a = _getActiveAudio();
+      if (a) a.currentTime = Math.min((a.duration || 0), a.currentTime + 30);
+    });
+
+    // Skip bakåt 30s
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      const a = _getActiveAudio();
+      if (a) a.currentTime = Math.max(0, a.currentTime - 30);
+    });
+
+    navigator.mediaSession.setActionHandler('seekforward', (d) => {
+      const a = _getActiveAudio();
+      if (a) a.currentTime = Math.min((a.duration || 0), a.currentTime + (d.seekOffset || 30));
+    });
+
+    navigator.mediaSession.setActionHandler('seekbackward', (d) => {
+      const a = _getActiveAudio();
+      if (a) a.currentTime = Math.max(0, a.currentTime - (d.seekOffset || 30));
+    });
+
+    // Uppdatera MediaSession position var 5:e sekund medan ljud spelas
+    // Detta hjälper iOS att hålla kopplingen till rätt app
+    setInterval(() => {
+      const a = _getActiveAudio();
+      if (!a || a.paused || !isFinite(a.duration)) return;
+      try {
+        navigator.mediaSession.setPositionState({
+          duration: a.duration,
+          playbackRate: a.playbackRate || 1,
+          position: a.currentTime,
+        });
+      } catch(e) {}
+    }, 5000);
+  })();
+
+  // Uppdatera MediaSession metadata — anropas från openPlayer och track-switch
+  function _updateMediaSessionMetadata(datum) {
+    if (!('mediaSession' in navigator)) return;
+    const row = SCHEDULE.find(r => r.datum === datum);
+    if (!row) return;
+    const color = IMAM_COLORS[row.imam] || '#24645d';
+    const initials = row.imamLabel.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">'
+      + '<rect width="512" height="512" fill="#0f1614"/>'
+      + '<rect width="512" height="512" fill="' + color + '" opacity="0.3"/>'
+      + '<circle cx="256" cy="210" r="130" fill="' + color + '"/>'
+      + '<text x="256" y="258" font-family="system-ui" font-size="110" font-weight="700" fill="white" text-anchor="middle">' + initials + '</text>'
+      + '<text x="256" y="380" font-family="system-ui" font-size="40" fill="rgba(255,255,255,0.7)" text-anchor="middle">Natt ' + row.day + '</text>'
+      + '</svg>';
+    let artUrl = '';
+    try { artUrl = 'data:image/svg+xml;base64,' + btoa(svg); } catch(e) {}
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: row.imamLabel,
+        artist: 'Natt ' + row.day,
+        album: 'Tarawih Kampingehallen 2026',
+        artwork: artUrl ? [{ src: artUrl, sizes: '512x512', type: 'image/svg+xml' }] : []
+      });
+    } catch(e) {}
+    navigator.mediaSession.playbackState = 'playing';
+  }
+
   function imamInitials(label) {
     const parts = label.trim().split(/\s+/);
     if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
@@ -4864,70 +4974,8 @@
     updateStickyPlayBtn(true);
     showSegmentControl(datum);
 
-    // MediaSession API — håller bakgrundsuppspelning aktiv på iOS/Android
-    if ('mediaSession' in navigator) {
-      const row = SCHEDULE.find(r => r.datum === datum);
-      if (row) {
-        const IMAM_COLORS = {
-          abdurrahman:'#e8630a', saed:'#d4a800', noor:'#2980b9',
-          abdul:'#555555', mohammed:'#219150', yacquub:'#7d3aac',
-          abdelsalam:'#7b3f00', hatem:'#2d6a4f', ibrahim:'#1a3a6b'
-        };
-        const color = IMAM_COLORS[row.imam] || '#24645d';
-        const initials = row.imamLabel.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-        // Endast ASCII i SVG — btoa() kraschar annars på svenska tecken
-        const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">'
-          + '<rect width="512" height="512" fill="#0f1614"/>'
-          + '<rect width="512" height="512" fill="' + color + '" opacity="0.3"/>'
-          + '<circle cx="256" cy="210" r="130" fill="' + color + '"/>'
-          + '<text x="256" y="258" font-family="system-ui" font-size="110" font-weight="700" fill="white" text-anchor="middle">' + initials + '</text>'
-          + '<text x="256" y="380" font-family="system-ui" font-size="40" fill="rgba(255,255,255,0.7)" text-anchor="middle">Natt ' + row.day + '</text>'
-          + '</svg>';
-        let artUrl = '';
-        try { artUrl = 'data:image/svg+xml;base64,' + btoa(svg); } catch(e) {}
-        try {
-          navigator.mediaSession.metadata = new MediaMetadata({
-            title: row.imamLabel,
-            artist: 'Natt ' + row.day,
-            album: 'Tarawih Kampingehallen 2026',
-            artwork: artUrl ? [{ src: artUrl, sizes: '512x512', type: 'image/svg+xml' }] : []
-          });
-        } catch(e) {}
-        // Sätt playbackState direkt — iOS behöver detta för att tillåta bakgrundsuppspelning
-        navigator.mediaSession.playbackState = 'playing';
-        navigator.mediaSession.setActionHandler('play', () => {
-          const a = audioState[datum];
-          if (a && a.paused) {
-            a.play().catch(() => {});
-            navigator.mediaSession.playbackState = 'playing';
-          }
-        });
-        navigator.mediaSession.setActionHandler('pause', () => {
-          const a = audioState[datum];
-          if (a && !a.paused) {
-            a.pause();
-            navigator.mediaSession.playbackState = 'paused';
-          }
-        });
-        // nexttrack/previoustrack krävs av iOS för att hålla MediaSession levande i bakgrunden
-        navigator.mediaSession.setActionHandler('nexttrack', () => {
-          const a = audioState[datum];
-          if (a) a.currentTime = Math.min((a.duration || 0), a.currentTime + 30);
-        });
-        navigator.mediaSession.setActionHandler('previoustrack', () => {
-          const a = audioState[datum];
-          if (a) a.currentTime = Math.max(0, a.currentTime - 30);
-        });
-        navigator.mediaSession.setActionHandler('seekforward', (d) => {
-          const a = audioState[datum];
-          if (a) a.currentTime = Math.min((a.duration || 0), a.currentTime + (d.seekOffset || 30));
-        });
-        navigator.mediaSession.setActionHandler('seekbackward', (d) => {
-          const a = audioState[datum];
-          if (a) a.currentTime = Math.max(0, a.currentTime - (d.seekOffset || 30));
-        });
-      }
-    }
+    // MediaSession — uppdatera metadata (handlers registreras en gång vid sidladdning)
+    _updateMediaSessionMetadata(datum);
 
     const p = document.getElementById('sticky-player');
     // Om spelaren redan är i mini-läge — stanna kvar, expandera INTE till full player
