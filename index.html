@@ -508,10 +508,7 @@
     .today-countdown-sub { font-size: 0.72rem; color: var(--muted); margin-top: 6px; display: block; transition: color 0.6s ease; }
     .isha-done .today-countdown-sub { color: #2d9e6b; }
 
-    .notif-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--notif-border); border-radius: 100px; padding: 5px 12px; font-size: 0.68rem; font-weight: 500; font-family: inherit; color: var(--muted); cursor: pointer; white-space: nowrap; transition: border-color 0.2s, color 0.2s, background 0.2s; flex-shrink: 0; align-self: flex-start; }
-    .notif-btn:hover { border-color: var(--primary); color: var(--primary-dark); background: var(--row-hover); }
-    .notif-btn.granted { border-color: rgba(36,186,120,0.35); color: #1d7a4e; background: rgba(36,186,120,0.06); cursor: default; pointer-events: none; }
-    .notif-btn.denied { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
 
     .today-card-footer { display: flex; align-items: center; justify-content: flex-end; }
     .today-scroll-btn { display: inline-flex; align-items: center; gap: 7px; background: var(--primary-dark); color: #fff; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase; padding: 10px 20px; border-radius: 100px; border: none; cursor: pointer; font-family: inherit; white-space: nowrap; box-shadow: 0 2px 12px rgba(26,74,68,0.25); transition: box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease; }
@@ -1627,6 +1624,135 @@
       font-size: 0.72rem; opacity: 0.75; margin-left: 2px;
     }
 
+    /* ── New Audio Available Toast — in-app banner for PWA refresh ── */
+    #new-audio-toast {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120px);
+      z-index: 99998;
+      width: min(360px, calc(100vw - 32px));
+      background: rgba(16, 24, 20, 0.97);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(201,168,76,0.20);
+      border-radius: 20px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.05);
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+    #new-audio-toast.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #new-audio-toast .nat-icon {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(201,168,76,0.25), rgba(201,168,76,0.12));
+      border: 1px solid rgba(201,168,76,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    #new-audio-toast .nat-body { flex: 1; min-width: 0; }
+    #new-audio-toast .nat-title {
+      font-size: 13.5px; font-weight: 600; color: #e8e3db;
+      line-height: 1.2; margin-bottom: 2px;
+    }
+    #new-audio-toast .nat-sub {
+      font-size: 11.5px; color: rgba(255,255,255,0.45);
+    }
+    #new-audio-toast .nat-action {
+      flex-shrink: 0;
+      background: rgba(201,168,76,0.15);
+      border: 1px solid rgba(201,168,76,0.30);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 11px; font-weight: 600;
+      color: var(--gold-light);
+      letter-spacing: 0.04em;
+    }
+    [data-theme="light"] #new-audio-toast {
+      background: rgba(255,255,255,0.97);
+      border-color: rgba(201,168,76,0.25);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+    }
+    [data-theme="light"] #new-audio-toast .nat-title { color: #1a1a1a; }
+    [data-theme="light"] #new-audio-toast .nat-sub { color: rgba(0,0,0,0.45); }
+
+    /* ── Audio Loading Banner — shown when mp3 isn't deployed yet (bugg 2) ── */
+    #audio-loading-banner {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120px);
+      z-index: 99999;
+      width: min(360px, calc(100vw - 32px));
+      background: rgba(16, 24, 20, 0.97);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(36,100,93,0.20);
+      border-radius: 20px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+      user-select: none;
+    }
+    #audio-loading-banner.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #audio-loading-banner .alb-icon {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(36,100,93,0.4), rgba(58,144,136,0.3));
+      border: 1px solid rgba(58,144,136,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    #audio-loading-banner .alb-body { flex: 1; min-width: 0; }
+    #audio-loading-banner .alb-title {
+      font-size: 13px; font-weight: 600; color: #e8e3db;
+      line-height: 1.2; margin-bottom: 2px;
+    }
+    #audio-loading-banner .alb-sub {
+      font-size: 11px; color: rgba(255,255,255,0.45);
+    }
+    @keyframes albSpin {
+      to { transform: rotate(360deg); }
+    }
+    #audio-loading-banner .alb-spinner {
+      width: 20px; height: 20px; flex-shrink: 0;
+      border: 2px solid rgba(255,255,255,0.12);
+      border-top-color: var(--gold-light);
+      border-radius: 50%;
+      animation: albSpin 0.8s linear infinite;
+    }
+    [data-theme="light"] #audio-loading-banner {
+      background: rgba(255,255,255,0.97);
+      border-color: rgba(36,100,93,0.15);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+    }
+    [data-theme="light"] #audio-loading-banner .alb-title { color: #1a1a1a; }
+    [data-theme="light"] #audio-loading-banner .alb-sub { color: rgba(0,0,0,0.45); }
+    [data-theme="light"] #audio-loading-banner .alb-spinner {
+      border-color: rgba(0,0,0,0.10);
+      border-top-color: var(--primary);
+    }
+
     /* ── Download Done Toast — åker ner från toppen ── */
     #dl-done-toast {
       position: fixed;
@@ -2282,159 +2408,6 @@
     }
     .share-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* iOS-style prayer banner */
-    .prayer-banner {
-      position: fixed;
-      top: 16px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-120px);
-      z-index: 99999;
-      width: min(360px, calc(100vw - 32px));
-      background: rgba(16, 24, 20, 0.97);
-      backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
-      border: 1px solid rgba(255,255,255,0.09);
-      border-radius: 20px;
-      padding: 14px 16px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
-      display: flex;
-      align-items: center;
-      gap: 13px;
-      opacity: 0;
-      pointer-events: none;
-      transition:
-        transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-        opacity 0.35s ease;
-      cursor: pointer;
-      user-select: none;
-    }
-    .prayer-banner.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-      pointer-events: auto;
-    }
-    .prayer-banner.hide {
-      transform: translateX(-50%) translateY(-120px);
-      opacity: 0;
-      pointer-events: none;
-    }
-    .pb-icon {
-      width: 42px; height: 42px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(36,100,93,0.8), rgba(58,144,136,0.6));
-      border: 1px solid rgba(58,144,136,0.3);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
-      position: relative;
-      overflow: hidden;
-    }
-    .pb-icon::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), transparent 60%);
-    }
-    .pb-body { flex: 1; min-width: 0; }
-    .pb-app {
-      font-family: 'Syne', sans-serif;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.35);
-      margin-bottom: 3px;
-    }
-    .pb-title {
-      font-size: 13.5px;
-      font-weight: 600;
-      color: #e8e3db;
-      line-height: 1.2;
-      margin-bottom: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .pb-sub {
-      font-size: 11.5px;
-      color: rgba(255,255,255,0.45);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .pb-close {
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.07);
-      border: none;
-      color: rgba(255,255,255,0.4);
-      font-size: 12px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background 0.15s, color 0.15s;
-    }
-    .pb-close:hover { background: rgba(255,255,255,0.13); color: rgba(255,255,255,0.7); }
-    .pb-progress {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 2px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 0 0 20px 20px;
-      overflow: hidden;
-    }
-    .pb-progress-fill {
-      height: 100%;
-      background: linear-gradient(to right, rgba(36,100,93,0.8), rgba(58,144,136,1));
-      border-radius: 0 0 20px 20px;
-      width: 100%;
-      transform-origin: left;
-      transition: transform linear;
-    }
-    [data-theme="light"] .prayer-banner {
-      background: rgba(255,255,255,0.96);
-      border-color: rgba(0,0,0,0.08);
-      box-shadow: 0 8px 40px rgba(0,0,0,0.15);
-    }
-    [data-theme="light"] .pb-app { color: rgba(0,0,0,0.35); }
-    [data-theme="light"] .pb-title { color: #1a1a1a; }
-    [data-theme="light"] .pb-sub { color: rgba(0,0,0,0.45); }
-    .pb-time-pill {
-      flex-shrink: 0;
-      background: rgba(201,168,76,0.10);
-      border: 1px solid rgba(201,168,76,0.20);
-      border-radius: 20px;
-      padding: 5px 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
-    .pb-time-label {
-      font-size: 8px;
-      font-weight: 700;
-      letter-spacing: 0.10em;
-      text-transform: uppercase;
-      color: rgba(201,168,76,0.6);
-      line-height: 1;
-    }
-    .pb-time-val {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 14px;
-      color: var(--gold-light);
-      line-height: 1;
-    }
-    .pb-swipe-hint {
-      position: absolute;
-      bottom: 7px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 32px; height: 3px;
-      background: rgba(255,255,255,0.12);
-      border-radius: 2px;
-      pointer-events: none;
-    }
-    [data-theme="light"] .pb-swipe-hint { background: rgba(0,0,0,0.10); }
-
     /* Lang dropdown */
     .lang-wrap { position: relative; }
     .lang-trigger {
@@ -2583,20 +2556,7 @@
   </div>
   <!-- SHARE TOAST -->
   <div class="share-toast" id="share-toast"></div>
-  <div class="prayer-banner" id="prayer-banner" role="alert" aria-live="polite">
-    <div class="pb-icon">🕌</div>
-    <div class="pb-body">
-      <div class="pb-app">Tarawih · Kämpingehallen</div>
-      <div class="pb-title" id="pb-title">Tarawih om 15 minuter</div>
-      <div class="pb-sub" id="pb-sub">Isha börjar kl. —</div>
-    </div>
-    <div class="pb-time-pill">
-      <div class="pb-time-label">Isha om</div>
-      <div class="pb-time-val" id="pb-countdown">15:00</div>
-    </div>
-    <div class="pb-progress"><div class="pb-progress-fill" id="pb-progress-fill"></div></div>
-    <div class="pb-swipe-hint"></div>
-  </div>
+
 </header>
 <!-- Moon bubble and backdrop — must be direct children of body for position:fixed to work on iOS -->
 <div class="moon-tooltip-backdrop" id="moon-tooltip-backdrop"></div>
@@ -2713,10 +2673,7 @@
             </div>
             <span class="today-countdown-sub" id="isha-time-info"></span>
           </div>
-          <button class="notif-btn" id="notif-btn" title="Få en notis när Isha-bönetiden börjar">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <span id="notif-btn-label" data-i18n="notifyMe">Notifiera mig</span>
-          </button>
+
         </div>
       </div>
       <div class="today-card-footer" style="justify-content:space-between;">
@@ -2890,6 +2847,13 @@
       updateLabel:     'Uppdatering tillgänglig',
       updateSub:       '— tryck för att ladda om',
       dlDone:          'Nedladdning klar! 📥',
+      newAudioTitle:   'Ny inspelning tillgänglig',
+      newAudioSub:     'Tryck för att uppdatera',
+      newAudioSubNamed:'Tryck för att ladda om och lyssna',
+      audioLoading:    'Inspelningen laddas upp…',
+      audioLoadingSub: 'Väntar på att filen ska bli tillgänglig',
+      audioNotReady:   'Inspelningen är inte redo än',
+      audioNotReadySub:'Testa att uppdatera sidan om en stund',
     },
     ar: {
       days: { Monday:'الاثنين', Tuesday:'الثلاثاء', Wednesday:'الأربعاء', Thursday:'الخميس', Friday:'الجمعة', Saturday:'السبت', Sunday:'الأحد' },
@@ -2972,6 +2936,9 @@
       updateLabel:     'تحديث متاح',
       updateSub:       '— اضغط للتحديث',
       dlDone:          'اكتمل التحميل! 📥',
+      newAudioTitle:   'تسجيل جديد متاح',
+      newAudioSub:     'اضغط للتحديث',
+      newAudioSubNamed:'اضغط لإعادة التحميل والاستماع',
     },
     en: {
       days: { Monday:'Monday', Tuesday:'Tuesday', Wednesday:'Wednesday', Thursday:'Thursday', Friday:'Friday', Saturday:'Saturday', Sunday:'Sunday' },
@@ -3054,6 +3021,9 @@
       updateLabel:     'Update available',
       updateSub:       '— tap to reload',
       dlDone:          'Download complete! 📥',
+      newAudioTitle:   'New recording available',
+      newAudioSub:     'Tap to refresh',
+      newAudioSubNamed:'Tap to reload and listen',
     },
     tr: {
       days: { Monday:'Pazartesi', Tuesday:'Salı', Wednesday:'Çarşamba', Thursday:'Perşembe', Friday:'Cuma', Saturday:'Cumartesi', Sunday:'Pazar' },
@@ -3136,6 +3106,9 @@
       updateLabel:     'Güncelleme mevcut',
       updateSub:       '— yüklemek için dokun',
       dlDone:          'İndirme tamamlandı! 📥',
+      newAudioTitle:   'Yeni kayıt mevcut',
+      newAudioSub:     'Yenilemek için dokunun',
+      newAudioSubNamed:'Yenileyip dinlemek için dokunun',
     },
     so: {
       days: { Monday:'Isniin', Tuesday:'Talaado', Wednesday:'Arbaco', Thursday:'Khamiis', Friday:'Jimce', Saturday:'Sabti', Sunday:'Axad' },
@@ -3218,6 +3191,9 @@
       updateLabel:     'Cusbooneysiinta diyaar',
       updateSub:       '— taabo si aad u cusbooneysiiso',
       dlDone:          'Soo dejintii dhammaysay! 📥',
+      newAudioTitle:   'Duubasho cusub ayaa diyaar ah',
+      newAudioSub:     'Taabo si aad u cusbooneysiiso',
+      newAudioSubNamed:'Taabo si aad u dhageysto',
     },
   };
 
@@ -5923,163 +5899,9 @@
     const timerDoneEl  = document.getElementById('isha-timer-done');
     const infoEl       = document.getElementById('isha-time-info');
     const labelEl      = document.getElementById('isha-label');
-    const notifBtn     = document.getElementById('notif-btn');
-    const notifLabel   = document.getElementById('notif-btn-label');
     if (!countdownEl) return;
     countdownEl.style.display = 'block';
     let _hasTriggeredDone = false;
-
-    function updateNotifBtn() {
-      if (!('Notification' in window)) { notifBtn.style.display = 'none'; return; }
-      if (Notification.permission === 'granted') { notifBtn.classList.add('granted'); notifLabel.textContent = T[_currentLang].notifGranted || 'Notis aktiv'; notifBtn.querySelector('svg').style.stroke = '#1d7a4e'; }
-      else if (Notification.permission === 'denied') { notifBtn.classList.add('denied'); notifLabel.textContent = T[_currentLang].notifDenied || 'Notis blockerad'; }
-    }
-    updateNotifBtn();
-    notifBtn.addEventListener('click', async () => {
-      if (!('Notification' in window)) return;
-      if (Notification.permission === 'default') {
-        await Notification.requestPermission();
-        updateNotifBtn();
-      }
-    });
-
-    function fireIshaNotification(ishaStr) {
-      if (!('Notification' in window) || Notification.permission !== 'granted') return;
-      new Notification(T[_currentLang].notifTitle, { body: T[_currentLang].notifBody + ishaStr, icon: 'favicon.ico', badge: 'favicon.ico', tag: 'isha-prayer', renotify: false, silent: false });
-    }
-
-    function showPrayerBanner(ishaStr) {
-      const banner = document.getElementById('prayer-banner');
-      const pbTitle = document.getElementById('pb-title');
-      const pbSub = document.getElementById('pb-sub');
-      const pbFill = document.getElementById('pb-progress-fill');
-      const pbCountdown = document.getElementById('pb-countdown');
-      if (!banner) return;
-
-      pbTitle.textContent = 'Tarawih om 15 minuter';
-      pbSub.textContent = 'Isha börjar kl. ' + ishaStr + ' · Tarawih direkt efter';
-
-      // Live countdown from 15:00
-      let secondsLeft = 15 * 60;
-      function updatePbCountdown() {
-        const m = Math.floor(secondsLeft / 60);
-        const s = secondsLeft % 60;
-        if (pbCountdown) pbCountdown.textContent = m + ':' + String(s).padStart(2, '0');
-      }
-      updatePbCountdown();
-      clearInterval(window._pbCountdownTimer);
-      window._pbCountdownTimer = setInterval(() => {
-        secondsLeft = Math.max(0, secondsLeft - 1);
-        updatePbCountdown();
-        if (secondsLeft === 0) clearInterval(window._pbCountdownTimer);
-      }, 1000);
-
-      banner.classList.remove('hide');
-      banner.style.transform = '';
-      banner.style.opacity = '';
-      banner.style.transition = '';
-      banner.classList.add('show');
-
-      // Progress bar auto-dismiss
-      const DURATION = 8000;
-      pbFill.style.transition = 'none';
-      pbFill.style.transform = 'scaleX(1)';
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        pbFill.style.transition = `transform ${DURATION}ms linear`;
-        pbFill.style.transform = 'scaleX(0)';
-      }));
-      let autoDismiss = setTimeout(() => dismissBanner(), DURATION);
-
-      function dismissBanner() {
-        clearTimeout(autoDismiss);
-        clearInterval(window._pbCountdownTimer);
-        banner.style.transition = 'transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease';
-        banner.style.transform = 'translateX(-50%) translateY(-140px)';
-        banner.style.opacity = '0';
-        setTimeout(() => {
-          banner.classList.add('hide');
-          banner.classList.remove('show');
-          banner.style.transform = '';
-          banner.style.opacity = '';
-          banner.style.transition = '';
-        }, 400);
-      }
-
-      // Swipe to dismiss
-      let startX = 0, startY = 0, startTime = 0, dragging = false;
-
-      function onStart(e) {
-        const t = e.touches ? e.touches[0] : e;
-        startX = t.clientX; startY = t.clientY;
-        startTime = Date.now();
-        dragging = true;
-        clearTimeout(autoDismiss);
-        pbFill.style.transition = 'none';
-        banner.style.transition = 'none';
-        banner.style.cursor = 'grabbing';
-      }
-
-      function onMove(e) {
-        if (!dragging) return;
-        const t = e.touches ? e.touches[0] : e;
-        const dx = t.clientX - startX;
-        const dy = t.clientY - startY;
-        banner.style.transform = `translateX(calc(-50% + ${dx}px)) translateY(${Math.min(8, dy)}px)`;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        banner.style.opacity = Math.max(0, 1 - dist / 140);
-        if (e.cancelable) e.preventDefault();
-      }
-
-      function onEnd(e) {
-        if (!dragging) return;
-        dragging = false;
-        banner.style.cursor = 'grab';
-        const t = e.changedTouches ? e.changedTouches[0] : e;
-        const dx = t.clientX - startX;
-        const dy = t.clientY - startY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const velocity = dist / Math.max(1, Date.now() - startTime);
-        if (dist > 70 || velocity > 0.45) {
-          const angle = Math.atan2(dy, dx);
-          banner.style.transition = 'transform 0.32s cubic-bezier(0.4,0,1,1), opacity 0.28s ease';
-          banner.style.transform = `translateX(calc(-50% + ${Math.cos(angle) * 320}px)) translateY(${Math.min(-10, Math.sin(angle) * 320)}px)`;
-          banner.style.opacity = '0';
-          setTimeout(() => dismissBanner(), 320);
-        } else {
-          banner.style.transition = 'transform 0.45s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease';
-          banner.style.transform = 'translateX(-50%) translateY(0)';
-          banner.style.opacity = '1';
-          autoDismiss = setTimeout(() => dismissBanner(), 8000);
-        }
-      }
-
-      banner.addEventListener('touchstart', onStart, { passive: true });
-      banner.addEventListener('touchmove', onMove, { passive: false });
-      banner.addEventListener('touchend', onEnd);
-      banner.addEventListener('mousedown', onStart);
-      window.addEventListener('mousemove', (e) => { if (dragging) onMove(e); });
-      window.addEventListener('mouseup', (e) => { if (dragging) onEnd(e); });
-
-      banner.onclick = (e) => {
-        if (Math.abs(e.clientX - startX) > 5) return;
-        dismissBanner();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      };
-    }
-
-    function schedule15MinNotif(ishaStr) {
-      const now = new Date();
-      const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-      const [ishaH, ishaM] = ishaStr.split(':').map(Number);
-      const ishaSec = ishaH * 3600 + ishaM * 60;
-      const msUntil15Before = (ishaSec - 15 * 60 - nowSec) * 1000;
-      if (msUntil15Before > 0) {
-        clearTimeout(window._isha15Timer);
-        window._isha15Timer = setTimeout(() => {
-          showPrayerBanner(ishaStr);
-        }, msUntil15Before);
-      }
-    }
 
     function triggerDoneAnimation(ishaStr) {
       if (_hasTriggeredDone) return;
@@ -6089,7 +5911,6 @@
       countdownEl.classList.add('isha-done');
       countdownEl.classList.add('isha-pulsing');
       countdownEl.addEventListener('animationend', () => { countdownEl.classList.remove('isha-pulsing'); }, { once: true });
-      fireIshaNotification(ishaStr);
     }
 
     function tick() {
@@ -6123,11 +5944,6 @@
         const diff = ishaSec - nowSec;
         const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
         timerEl.textContent = padZ(h) + ':' + padZ(m) + ':' + padZ(s);
-        // Schedule 15-min advance notif once per session
-        if (!window._isha15Scheduled) {
-          window._isha15Scheduled = true;
-          schedule15MinNotif(ishaStr);
-        }
         // Guld-ton när < 30 min kvar
         if (ringEl && diff < 1800) {
           timerEl.style.color = 'var(--gold)';
@@ -6725,8 +6541,17 @@
         el.style.background = 'rgba(36,100,93,0.18)';
         setTimeout(() => { el.style.background = ''; }, 1400);
 
-        // Öppna full player
-        setTimeout(() => openPlayer(datum), 350);
+        // Öppna full player — men kolla först om mp3 finns (deploy-delay)
+        setTimeout(async () => {
+          const exists = await _audioExistsCheck(datum);
+          if (exists) {
+            openPlayer(datum);
+          } else {
+            // Filen finns inte ännu — visa loading banner + retry
+            _showAudioLoadingBanner();
+            _retryOpenPlayer(datum, 12); // max 12 försök à 15s = ~3 min
+          }
+        }, 350);
       } else if (attempts > 0) {
         setTimeout(() => _tryOpen(attempts - 1), 300);
       }
@@ -6962,6 +6787,162 @@
       _updatePushBtn('denied');
     }
   });
+
+  // ══════════════════════════════════════════════════════════════
+  //  BUGG 2: Deploy-delay — om push-notis öppnar appen men mp3 ej klar
+  //  Visar "laddas upp…" banner och försöker igen automatiskt.
+  //  Logiken ligger i openPlayer (se där) + hjälpfunktioner nedan.
+  // ══════════════════════════════════════════════════════════════
+
+  window._audioLoadingRetryTimer = null;
+
+  function _audioExistsCheck(datum) {
+    const loc = window.location.href;
+    const base = loc.substring(0, loc.lastIndexOf('/') + 1);
+    const url = `${base}${datum}.mp3`;
+    return fetch(url, { method: 'HEAD', cache: 'no-store' }).then(r => r.ok).catch(() => false);
+  }
+
+  function _showAudioLoadingBanner() {
+    const banner = document.getElementById('audio-loading-banner');
+    const title  = document.getElementById('alb-title');
+    const sub    = document.getElementById('alb-sub');
+    const spinner = document.querySelector('#audio-loading-banner .alb-spinner');
+    if (!banner) return;
+    const t = T[_currentLang] || T['sv'];
+    if (title) title.textContent = t.audioLoading || 'Inspelningen laddas upp…';
+    if (sub) sub.textContent = t.audioLoadingSub || 'Väntar på att filen ska bli tillgänglig';
+    if (spinner) spinner.style.display = '';
+    banner.classList.add('visible');
+  }
+
+  function _hideAudioLoadingBanner() {
+    const banner = document.getElementById('audio-loading-banner');
+    if (banner) banner.classList.remove('visible');
+  }
+
+  function _showAudioNotReady() {
+    const title  = document.getElementById('alb-title');
+    const sub    = document.getElementById('alb-sub');
+    const spinner = document.querySelector('#audio-loading-banner .alb-spinner');
+    const t = T[_currentLang] || T['sv'];
+    if (title) title.textContent = t.audioNotReady || 'Inspelningen är inte redo än';
+    if (sub) sub.textContent = t.audioNotReadySub || 'Testa att uppdatera sidan om en stund';
+    if (spinner) spinner.style.display = 'none';
+    setTimeout(_hideAudioLoadingBanner, 5000);
+  }
+
+  function _retryOpenPlayer(datum, retriesLeft) {
+    clearTimeout(window._audioLoadingRetryTimer);
+    if (retriesLeft <= 0) { _showAudioNotReady(); return; }
+    window._audioLoadingRetryTimer = setTimeout(async () => {
+      const exists = await _audioExistsCheck(datum);
+      if (exists) {
+        _hideAudioLoadingBanner();
+        openPlayer(datum);
+      } else {
+        _retryOpenPlayer(datum, retriesLeft - 1);
+      }
+    }, 15000); // 15s mellan försök
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  BUGG 3: Meddela om ny ljudfil finns — utan att auto-uppdatera
+  //  Kollar vid varje fokus/visibility-change om nya mp3-filer finns
+  // ══════════════════════════════════════════════════════════════
+
+  (function initNewAudioChecker() {
+    const CHECK_KEY = 'tarawih-audio-snapshot';
+    const COOLDOWN  = 60000; // Kolla max var 60:e sekund
+    let _lastCheck  = 0;
+
+    // Bygg en snapshot av vilka datum som har mp3
+    async function _getAudioSnapshot() {
+      const found = [];
+      const loc = window.location.href;
+      const base = loc.substring(0, loc.lastIndexOf('/') + 1);
+      await Promise.all(SCHEDULE.map(async (row) => {
+        try {
+          const res = await fetch(`${base}${row.datum}.mp3`, { method: 'HEAD', cache: 'no-store' });
+          if (res.ok) found.push(row.datum);
+        } catch {}
+      }));
+      return found.sort();
+    }
+
+    function _showNewAudioToast(imamLabel) {
+      const toast = document.getElementById('new-audio-toast');
+      const title = document.getElementById('nat-title');
+      const sub   = document.getElementById('nat-sub');
+      if (!toast) return;
+
+      const t = T[_currentLang] || T['sv'];
+      if (title) title.textContent = t.newAudioTitle || 'Ny inspelning tillgänglig';
+      if (sub) sub.textContent = imamLabel
+        ? (t.newAudioSubNamed || 'Tryck för att ladda om och lyssna')
+        : (t.newAudioSub || 'Tryck för att uppdatera');
+
+      toast.classList.add('visible');
+
+      toast.onclick = () => {
+        toast.classList.remove('visible');
+        window.location.reload();
+      };
+
+      // Auto-göm efter 15s
+      setTimeout(() => { toast.classList.remove('visible'); }, 15000);
+    }
+
+    async function checkForNewAudio() {
+      const now = Date.now();
+      if (now - _lastCheck < COOLDOWN) return;
+      _lastCheck = now;
+
+      try {
+        const oldSnapshotStr = localStorage.getItem(CHECK_KEY) || '[]';
+        const oldSnapshot = JSON.parse(oldSnapshotStr);
+        const newSnapshot = await _getAudioSnapshot();
+
+        // Jämför — finns det nya datum som inte fanns förut?
+        const newDatums = newSnapshot.filter(d => !oldSnapshot.includes(d));
+
+        // Uppdatera snapshot
+        localStorage.setItem(CHECK_KEY, JSON.stringify(newSnapshot));
+
+        if (newDatums.length > 0) {
+          // Hitta imam-namn för den senaste nya inspelningen
+          const latestDatum = newDatums[newDatums.length - 1];
+          const row = SCHEDULE.find(r => r.datum === latestDatum);
+          _showNewAudioToast(row ? row.imamLabel : '');
+        }
+      } catch (e) {
+        console.warn('[NewAudioCheck] Fel:', e);
+      }
+    }
+
+    // Kolla vid visibility-change (PWA kommer tillbaka till förgrunden)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        // Fördröj en sekund så appen hinner rendera
+        setTimeout(checkForNewAudio, 1500);
+      }
+    });
+
+    // Kolla även vid fokus (window.focus event — iOS standalone PWA)
+    window.addEventListener('focus', () => {
+      setTimeout(checkForNewAudio, 1500);
+    });
+
+    // Kör en baseline-snapshot vid sidladdning (utan att visa toast)
+    window.addEventListener('load', () => {
+      setTimeout(async () => {
+        try {
+          const snap = await _getAudioSnapshot();
+          localStorage.setItem(CHECK_KEY, JSON.stringify(snap));
+        } catch {}
+      }, 5000); // Vänta 5s efter laddning
+    });
+  })();
 
 
 </script>
@@ -7218,6 +7199,26 @@
 <div id="dl-done-toast">
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
   <span id="dl-done-label">Nedladdning klar!</span>
+</div>
+
+<!-- ── New Audio Available Toast (bugg 3) ── -->
+<div id="new-audio-toast">
+  <div class="nat-icon">🎙</div>
+  <div class="nat-body">
+    <div class="nat-title" id="nat-title">Ny inspelning tillgänglig</div>
+    <div class="nat-sub" id="nat-sub">Tryck för att uppdatera</div>
+  </div>
+  <div class="nat-action" id="nat-action">Uppdatera</div>
+</div>
+
+<!-- ── Audio Loading Banner (bugg 2 — deploy delay) ── -->
+<div id="audio-loading-banner">
+  <div class="alb-icon">🕌</div>
+  <div class="alb-body">
+    <div class="alb-title" id="alb-title">Inspelningen laddas upp…</div>
+    <div class="alb-sub" id="alb-sub">Väntar på att filen ska bli tillgänglig</div>
+  </div>
+  <div class="alb-spinner"></div>
 </div>
 
 </body>
