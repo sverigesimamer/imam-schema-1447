@@ -3643,89 +3643,6 @@
   let _seekActive = false;
   let _autoMiniTimer = null;   // true under pågående seek — blockerar scroll→mini
 
-  // ══════════════════════════════════════════════════════════════
-  //  iOS Silent Keepalive — håller audiosessionen vid liv i bakgrunden
-  //  Skapar en tyst ljudloop via Web Audio API som förhindrar att
-  //  iOS suspenderar audiosessionen när PWA:n är i bakgrunden.
-  // ══════════════════════════════════════════════════════════════
-  const _silentKeepAlive = (function() {
-    let _ctx = null;
-    let _sourceNode = null;
-    let _running = false;
-    let _silentAudio = null;
-
-    function _createSilentBuffer(ctx) {
-      // 2 sekunder tystnad, mono, native sample rate
-      const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-      return buf;
-    }
-
-    function start() {
-      if (_running) return;
-
-      // Metod 1: Web Audio API oscillator (primär — mest pålitlig på iOS)
-      try {
-        if (!_ctx) {
-          _ctx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (_ctx.state === 'suspended') {
-          _ctx.resume().catch(() => {});
-        }
-
-        // Skapa tyst bufferkälla som loopar
-        if (_sourceNode) { try { _sourceNode.stop(); } catch(e) {} }
-        _sourceNode = _ctx.createBufferSource();
-        _sourceNode.buffer = _createSilentBuffer(_ctx);
-        _sourceNode.loop = true;
-
-        // Gain på 0 — helt tyst men håller sessionen aktiv
-        const gain = _ctx.createGain();
-        gain.gain.value = 0.001; // Nästan noll men inte helt (iOS kan optimera bort 0)
-        _sourceNode.connect(gain);
-        gain.connect(_ctx.destination);
-        _sourceNode.start(0);
-        _running = true;
-        console.log('[Keepalive] Silent audio started');
-      } catch(e) {
-        console.warn('[Keepalive] Web Audio failed, trying fallback:', e);
-      }
-
-      // Metod 2: Fallback — tyst HTML Audio element
-      // Skapar en minimal data-URI wav-fil (tystnad) och loopar den
-      if (!_silentAudio) {
-        try {
-          // Minimal WAV: 44 bytes header + 2 bytes tystnad (16-bit mono, 8kHz, 1 sample)
-          const wavHeader = 'UklGRiYAAABXQVZFZm10IBAAAAABAAEAIlYAAERYAAACABAAZGF0YQIAAAAAAA==';
-          _silentAudio = new Audio('data:audio/wav;base64,' + wavHeader);
-          _silentAudio.loop = true;
-          _silentAudio.volume = 0.01;
-          _silentAudio.setAttribute('playsinline', '');
-        } catch(e) {}
-      }
-      if (_silentAudio) {
-        _silentAudio.play().catch(() => {});
-      }
-    }
-
-    function stop() {
-      _running = false;
-      if (_sourceNode) { try { _sourceNode.stop(); } catch(e) {} _sourceNode = null; }
-      if (_silentAudio) { _silentAudio.pause(); }
-      console.log('[Keepalive] Silent audio stopped');
-    }
-
-    function resume() {
-      if (_ctx && _ctx.state === 'suspended') {
-        _ctx.resume().catch(() => {});
-      }
-      if (_silentAudio && _silentAudio.paused && _running) {
-        _silentAudio.play().catch(() => {});
-      }
-    }
-
-    return { start, stop, resume };
-  })();
-
   // ════════════════════════════════════════
   // FAVORITER — localStorage
   // ════════════════════════════════════════
@@ -4002,58 +3919,32 @@
     }
 
     // Play — robust resume för iOS standalone PWA
-    // iOS suspenderar audio i bakgrunden och play() misslyckas tyst.
-    // Vi sparar position, gör retry, och tvingar resume.
     navigator.mediaSession.setActionHandler('play', async () => {
       const a = _getActiveAudio();
       if (!a) return;
 
-      // Resume silent keepalive + AudioContext
-      _silentKeepAlive.resume();
-
-      // Spara position innan play-försök (iOS kan resetta den)
-      const savedTime = a.currentTime;
-
-      // Resume AudioContext om den finns
       if (window._resumeAudioCtx) window._resumeAudioCtx();
 
-      // iOS PWA-fix: om src tappats eller readyState är 0, tvinga reload
-      if (a.readyState === 0 && a.src) {
-        const src = a.src;
-        a.src = '';
-        a.src = src;
-        a.currentTime = savedTime;
-      }
+      const savedTime = a.currentTime;
+      const src = a.src;
 
       try {
         await a.play();
         navigator.mediaSession.playbackState = 'playing';
-        // Återställ position om iOS nollställde den
-        if (Math.abs(a.currentTime - savedTime) > 2) {
-          a.currentTime = savedTime;
-        }
       } catch (err) {
-        console.warn('[MediaSession] Play failed, retrying...', err.name);
-        // Retry efter kort fördröjning — iOS behöver ibland ett ögonblick
-        setTimeout(async () => {
-          try {
-            // Säkerställ att src finns kvar
-            if (a.readyState === 0 && a.src) {
-              const src = a.src;
-              a.src = '';
-              a.src = src;
-              a.currentTime = savedTime;
-            }
-            await a.play();
-            navigator.mediaSession.playbackState = 'playing';
-            if (Math.abs(a.currentTime - savedTime) > 2) {
-              a.currentTime = savedTime;
-            }
-          } catch (e2) {
-            console.warn('[MediaSession] Retry also failed:', e2.name);
-            navigator.mediaSession.playbackState = 'paused';
-          }
-        }, 300);
+        console.warn('[MediaSession] Play failed:', err.name);
+        // iOS PWA: ladda om källan och försök igen
+        try {
+          a.src = '';
+          a.load();
+          a.src = src;
+          a.currentTime = savedTime;
+          await a.play();
+          navigator.mediaSession.playbackState = 'playing';
+        } catch (e2) {
+          console.warn('[MediaSession] Reload+play failed:', e2.name);
+          navigator.mediaSession.playbackState = 'paused';
+        }
       }
     });
 
@@ -4536,7 +4427,6 @@
     const a = ishaState[datum];
     if (a.paused) {
       _stopAll(datum, 'isha'); // stop everything else first
-      _silentKeepAlive.start();
       const p = a.play();
       if (p) p.catch(() => {});
     } else {
@@ -4734,7 +4624,6 @@
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         if (window._resumeAudioCtx) window._resumeAudioCtx();
-        _silentKeepAlive.resume();
         // Re-sync MediaSession metadata så iOS inte tappar kopplingen
         if (_activeDatum) _updateMediaSessionMetadata(_activeDatum);
         // Uppdatera positionState
@@ -5132,7 +5021,7 @@
     _autoMiniTimer = setTimeout(() => { if (_activeDatum) miniSticky(); }, 5000);
   }
 
-  function closePlayer(datum) { _activeDatum = null; updatePlayingRow(null); hideSticky(); updateStickyPlayBtn(false); hideSegmentControl(); _silentKeepAlive.stop(); }
+  function closePlayer(datum) { _activeDatum = null; updatePlayingRow(null); hideSticky(); updateStickyPlayBtn(false); hideSegmentControl(); }
 
   // Håller koll på pågående play()-promises per datum för att förhindra race conditions
   const _playingPromise = {};
@@ -5224,7 +5113,6 @@
         setBtns(datum, SPIN_SVG, true);
         if (window._primeAudioCtx) window._primeAudioCtx();
         if (window._resumeAudioCtx) window._resumeAudioCtx(datum);
-        _silentKeepAlive.start(); // Håll iOS audiosession vid liv i bakgrunden
 
         const tryPlay = () => {
           const p = audio.play();
