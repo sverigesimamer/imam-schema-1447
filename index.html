@@ -3919,32 +3919,55 @@
     }
 
     // Play — robust resume för iOS standalone PWA
+    // iOS suspenderar audio i bakgrunden och play() misslyckas tyst.
+    // Vi sparar position, gör retry, och tvingar resume.
     navigator.mediaSession.setActionHandler('play', async () => {
       const a = _getActiveAudio();
       if (!a) return;
 
+      // Spara position innan play-försök (iOS kan resetta den)
+      const savedTime = a.currentTime;
+
+      // Resume AudioContext om den finns
       if (window._resumeAudioCtx) window._resumeAudioCtx();
 
-      const savedTime = a.currentTime;
-      const src = a.src;
+      // iOS PWA-fix: om src tappats eller readyState är 0, tvinga reload
+      if (a.readyState === 0 && a.src) {
+        const src = a.src;
+        a.src = '';
+        a.src = src;
+        a.currentTime = savedTime;
+      }
 
       try {
         await a.play();
         navigator.mediaSession.playbackState = 'playing';
-      } catch (err) {
-        console.warn('[MediaSession] Play failed:', err.name);
-        // iOS PWA: ladda om källan och försök igen
-        try {
-          a.src = '';
-          a.load();
-          a.src = src;
+        // Återställ position om iOS nollställde den
+        if (Math.abs(a.currentTime - savedTime) > 2) {
           a.currentTime = savedTime;
-          await a.play();
-          navigator.mediaSession.playbackState = 'playing';
-        } catch (e2) {
-          console.warn('[MediaSession] Reload+play failed:', e2.name);
-          navigator.mediaSession.playbackState = 'paused';
         }
+      } catch (err) {
+        console.warn('[MediaSession] Play failed, retrying...', err.name);
+        // Retry efter kort fördröjning — iOS behöver ibland ett ögonblick
+        setTimeout(async () => {
+          try {
+            // Säkerställ att src finns kvar
+            if (a.readyState === 0 && a.src) {
+              const src = a.src;
+              a.src = '';
+              a.src = src;
+              a.currentTime = savedTime;
+            }
+            await a.play();
+            navigator.mediaSession.playbackState = 'playing';
+            if (Math.abs(a.currentTime - savedTime) > 2) {
+              a.currentTime = savedTime;
+            }
+          } catch (e2) {
+            console.warn('[MediaSession] Retry also failed:', e2.name);
+            navigator.mediaSession.playbackState = 'paused';
+          }
+        }, 300);
       }
     });
 
