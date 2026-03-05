@@ -1,11 +1,9 @@
 name: Send Push on New Audio
-
 on:
   push:
     branches: [main]
     paths:
       - '*.mp3'
-
 jobs:
   notify:
     runs-on: ubuntu-latest
@@ -14,33 +12,55 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
-
       - name: Detect new MP3 and send push
         run: |
           # Find newly added .mp3 files in this commit
           ADDED=$(git diff --name-only --diff-filter=A HEAD~1 HEAD | grep '\.mp3$' || true)
-
           if [ -z "$ADDED" ]; then
             echo "No new MP3 files, skipping."
             exit 0
           fi
-
           echo "New audio files: $ADDED"
-
           for FILE in $ADDED; do
             # Skip isha files (e.g. 2026-03-04-isha.mp3)
             if echo "$FILE" | grep -q "\-isha"; then
               echo "Skipping isha file: $FILE"
               continue
             fi
-
             # Extract datum from filename (e.g. "2026-03-04.mp3" -> "2026-03-04")
             DATUM=$(basename "$FILE" .mp3)
             echo "Processing: $FILE (datum=$DATUM)"
 
+            # ── Wait for GitHub Pages deploy ──────────────────────
+            # Poll the live URL until the mp3 returns HTTP 200,
+            # with a minimum wait of 120s and max of 360s.
+            LIVE_URL="https://sverigesimamer.github.io/imam-schema-1447/${DATUM}.mp3"
+            echo "Waiting for deploy: $LIVE_URL"
+
+            # Initial wait — GitHub Pages typically needs 1–3 min
+            echo "Sleeping 120s to let Pages build & deploy..."
+            sleep 120
+
+            # Then poll every 15s for up to 4 more minutes (16 attempts)
+            DEPLOY_OK=false
+            for i in $(seq 1 16); do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" --head "$LIVE_URL")
+              echo "  Attempt $i/16 — HTTP $STATUS"
+              if [ "$STATUS" = "200" ]; then
+                DEPLOY_OK=true
+                echo "Deploy confirmed!"
+                break
+              fi
+              sleep 15
+            done
+
+            if [ "$DEPLOY_OK" = false ]; then
+              echo "WARNING: Deploy not confirmed after ~6 min. Sending push anyway."
+            fi
+            # ──────────────────────────────────────────────────────
+
             # Parse SCHEDULE from index.html to get metadata for this datum
             LINE=$(grep -oP "\{day:\d+.*?\}" index.html | grep "datum:'$DATUM'" || true)
-
             if [ -z "$LINE" ]; then
               echo "Datum $DATUM not found in SCHEDULE, sending generic notification"
               TITLE="🔊 Låt Qur'anen fylla ditt hjärta"
@@ -49,19 +69,15 @@ jobs:
             else
               NATT=$(echo "$LINE" | grep -oP "day:\K\d+")
               IMAM=$(echo "$LINE" | grep -oP "imamLabel:'\K[^']+")
-
               TITLE="🔊 Låt Qur'anen fylla ditt hjärta"
               BODY="Kvällens Tarawih med ${IMAM} är nu uppladdad. Lyssna och reflektera över Allahs ord."
               URL="https://sverigesimamer.github.io/imam-schema-1447/?natt=${NATT}"
             fi
-
             echo "Title: $TITLE"
             echo "Body:  $BODY"
             echo "URL:   $URL"
-
             RESPONSE=$(curl -s -X POST "${{ secrets.PUSH_FUNCTION_URL }}" \
               -H "Content-Type: application/json" \
               -d "$(printf '{"title":"%s","body":"%s","url":"%s"}' "$TITLE" "$BODY" "$URL")")
-
             echo "Response: $RESPONSE"
           done
