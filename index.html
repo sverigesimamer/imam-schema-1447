@@ -3918,12 +3918,56 @@
       return audioState[_activeDatum] || null;
     }
 
-    // Play — återuppta aktuellt ljud
-    navigator.mediaSession.setActionHandler('play', () => {
+    // Play — robust resume för iOS standalone PWA
+    // iOS suspenderar audio i bakgrunden och play() misslyckas tyst.
+    // Vi sparar position, gör retry, och tvingar resume.
+    navigator.mediaSession.setActionHandler('play', async () => {
       const a = _getActiveAudio();
-      if (a && a.paused) {
-        a.play().catch(() => {});
+      if (!a) return;
+
+      // Spara position innan play-försök (iOS kan resetta den)
+      const savedTime = a.currentTime;
+
+      // Resume AudioContext om den finns
+      if (window._resumeAudioCtx) window._resumeAudioCtx();
+
+      // iOS PWA-fix: om src tappats eller readyState är 0, tvinga reload
+      if (a.readyState === 0 && a.src) {
+        const src = a.src;
+        a.src = '';
+        a.src = src;
+        a.currentTime = savedTime;
+      }
+
+      try {
+        await a.play();
         navigator.mediaSession.playbackState = 'playing';
+        // Återställ position om iOS nollställde den
+        if (Math.abs(a.currentTime - savedTime) > 2) {
+          a.currentTime = savedTime;
+        }
+      } catch (err) {
+        console.warn('[MediaSession] Play failed, retrying...', err.name);
+        // Retry efter kort fördröjning — iOS behöver ibland ett ögonblick
+        setTimeout(async () => {
+          try {
+            // Säkerställ att src finns kvar
+            if (a.readyState === 0 && a.src) {
+              const src = a.src;
+              a.src = '';
+              a.src = src;
+              a.currentTime = savedTime;
+            }
+            await a.play();
+            navigator.mediaSession.playbackState = 'playing';
+            if (Math.abs(a.currentTime - savedTime) > 2) {
+              a.currentTime = savedTime;
+            }
+          } catch (e2) {
+            console.warn('[MediaSession] Retry also failed:', e2.name);
+            navigator.mediaSession.playbackState = 'paused';
+          }
+        }, 300);
       }
     });
 
@@ -4598,11 +4642,24 @@
       e.stopPropagation();
     });
 
-    // Återuppta AudioContext när appen kommer tillbaka i förgrunden
-    // (iOS Safari suspenderar AudioContext vid skärmlås — men audio fortsätter spela)
+    // Återuppta AudioContext + re-prime audio när appen kommer tillbaka i förgrunden
+    // (iOS standalone PWA suspenderar allt vid skärmlås)
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         if (window._resumeAudioCtx) window._resumeAudioCtx();
+        // Re-sync MediaSession metadata så iOS inte tappar kopplingen
+        if (_activeDatum) _updateMediaSessionMetadata(_activeDatum);
+        // Uppdatera positionState
+        const a = audioState[_activeDatum] || null;
+        if (a && !a.paused && isFinite(a.duration) && 'mediaSession' in navigator) {
+          try {
+            navigator.mediaSession.setPositionState({
+              duration: a.duration,
+              playbackRate: a.playbackRate || 1,
+              position: a.currentTime,
+            });
+          } catch(e) {}
+        }
       }
     });
 
