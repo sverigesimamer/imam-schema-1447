@@ -121,7 +121,7 @@ jobs:
           while IFS= read -r FILE; do
             [ -z "$FILE" ] && continue
 
-            if echo "$FILE" | grep -q '\-isha\.mp3$'; then
+            if echo "$FILE" | grep -q '\-isha'; then
               echo "Skipping isha file: $FILE"
               continue
             fi
