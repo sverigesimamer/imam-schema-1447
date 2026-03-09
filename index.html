@@ -135,12 +135,74 @@
       --ios-thumb:       #ffffff;
     }
 
+    /* ══ Qadr-natt dark mode — svart/kosmisk blå för udda nätter i sista 10 ══ */
+    [data-theme="dark"][data-qadr="true"] {
+      --bg:              #060a14;
+      --surface:         #0c1220;
+      --surface-2:       #121a2c;
+      --border:          rgba(100,140,220,0.10);
+      --border-subtle:   rgba(100,140,220,0.06);
+      --text:            #e4e8f0;
+      --muted:           #7888a0;
+      --muted-2:         #4a5a72;
+      --primary:         #4070b8;
+      --primary-dark:    #5a90d0;
+      --today-bg:        rgba(60,100,180,0.15);
+      --row-hover:       rgba(100,140,220,0.05);
+      --chip-bg:         #101828;
+      --chip-shadow:     0 2px 8px rgba(0,0,0,0.40);
+      --table-shadow:    0 6px 32px rgba(0,0,0,0.50);
+      --card-shadow:     0 2px 4px rgba(0,0,0,0.30), 0 8px 24px rgba(0,0,0,0.40), 0 24px 48px rgba(0,0,0,0.25);
+      --mobile-shadow:   0 2px 12px rgba(0,0,0,0.40);
+      --info-gap:        rgba(100,140,220,0.08);
+      --cell-bg:         #0c1220;
+      --countdown-bg:    rgba(100,140,220,0.05);
+      --countdown-bdr:   rgba(100,140,220,0.12);
+      --notif-border:    rgba(100,140,220,0.15);
+      --dcm-pages-bg:    rgba(100,140,220,0.08);
+      --dcm-surahs-bg:   rgba(100,140,220,0.06);
+      --fredag-clr:      #e09840;
+      --lordag-clr:      #8ab8d8;
+      --header-bg:       linear-gradient(145deg, rgba(6,10,20,0.99) 0%, rgba(10,18,36,0.99) 40%, rgba(14,26,48,0.99) 70%, rgba(20,36,60,0.99) 100%);
+      --header-a-bg:     rgba(100,140,220,0.12);
+      --header-a-clr:    rgba(200,220,255,0.88);
+      --wave-fill:       #080e1a;
+      --footer-bg:       #050810;
+      --legend-bg:       #101828;
+      --gold:            #a0b8e0;
+      --gold-light:      #b8d0f0;
+      --today-green:     #5a90d0;
+    }
+    /* Qadr header accents */
+    [data-theme="dark"][data-qadr="true"] header::before {
+      background: radial-gradient(ellipse at 80% 25%, rgba(80,120,200,0.12) 0%, transparent 55%), radial-gradient(ellipse at 15% 70%, rgba(60,100,180,0.15) 0%, transparent 40%);
+    }
+    [data-theme="dark"][data-qadr="true"] tbody tr.today {
+      background: rgba(60,100,180,0.15) !important;
+      border-left-color: #5a90d0;
+    }
+    [data-theme="dark"][data-qadr="true"] .today-badge {
+      background: #4070b8;
+    }
+    [data-theme="dark"][data-qadr="true"] .td-datum.today-date {
+      color: #7eb8f7;
+    }
+    [data-theme="dark"][data-qadr="true"] .day-card-mobile.today {
+      background: rgba(60,100,180,0.12);
+      border-left-color: #5a90d0;
+    }
+    [data-theme="dark"][data-qadr="true"] .dcm-dag.today-day {
+      color: #7eb8f7;
+    }
+
     html { scrollbar-gutter: stable; min-height: 100%; min-height: -webkit-fill-available; background-color: var(--bg) !important; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html[data-theme="light"] { background-color: #f7f4ef !important; color: #1a1a1a; }
     html[data-theme="light"] body { background-color: #f7f4ef !important; color: #1a1a1a; }
     html[data-theme="dark"]  { background-color: #0f1614 !important; color: #e8e3db; }
     html[data-theme="dark"]  body { background-color: #0f1614 !important; color: #e8e3db; }
+    html[data-theme="dark"][data-qadr="true"] { background-color: #060a14 !important; color: #e4e8f0; }
+    html[data-theme="dark"][data-qadr="true"] body { background-color: #060a14 !important; color: #e4e8f0; }
     body { background-color: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); -webkit-text-size-adjust: 100%; transition: background 0.35s ease, color 0.35s ease; min-height: 100vh; padding-bottom: env(safe-area-inset-bottom); }
 
     /* ══ iOS TOGGLE ══ */
@@ -685,6 +747,9 @@
       border-radius: 24px;
       padding: 2px;
       margin-bottom: 32px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
     }
     .today-card-comet::before {
       content: '';
@@ -895,12 +960,16 @@
     .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
     /* ── TABLE ── */
-    .table-wrap { overflow: visible; border-radius: 16px; box-shadow: var(--table-shadow); transition: box-shadow 0.35s; }
+    .table-wrap { overflow: hidden; border-radius: 18px; box-shadow: var(--table-shadow); transition: box-shadow 0.35s; }
     table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: .875rem; transition: background 0.35s; }
     thead tr { background: var(--primary); transition: background 0.35s; }
     thead th { font-size: .7rem; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.7); padding: 14px 16px; text-align: left; white-space: nowrap; }
+    thead th:first-child { border-radius: 18px 0 0 0; }
+    thead th:last-child { border-radius: 0 18px 0 0; }
     tbody tr { border-bottom: 1px solid var(--border-subtle); transition: background .15s; border-left: 4px solid transparent; }
     tbody tr:last-child { border-bottom: none; }
+    tbody tr:last-child td:first-child { border-radius: 0 0 0 18px; }
+    tbody tr:last-child td:last-child { border-radius: 0 0 18px 0; }
     tbody tr:hover { background: var(--row-hover); }
     td { padding: 12px 16px; vertical-align: middle; }
     .td-dag { font-weight: 700; font-size: .95rem; color: var(--primary-dark); text-align: center; transition: color 0.35s; }
@@ -3382,6 +3451,13 @@
   const _p2 = n => String(n).padStart(2,'0');
   const today = _now.getFullYear() + '-' + _p2(_now.getMonth()+1) + '-' + _p2(_now.getDate());
   const isAfterRamadan = today > '2026-03-18';
+
+  // Qadr-natt-detektion: udda natt i sista 10 → kosmisk blå dark mode
+  const _todayRow = SCHEDULE.find(r => r.datum === today);
+  const _isQadrToday = _todayRow && _todayRow.day >= 21 && _todayRow.day % 2 !== 0;
+  if (_isQadrToday) {
+    document.documentElement.setAttribute('data-qadr', 'true');
+  }
 
   function scrollToToday() {
     const isMobile = window.innerWidth <= 640;
@@ -6626,7 +6702,8 @@
 
   function _applyTheme(theme) {
     _root.setAttribute('data-theme', theme);
-    const bgColor = theme === 'dark' ? '#0f1614' : '#f7f4ef';
+    const isQadr = _root.getAttribute('data-qadr') === 'true';
+    const bgColor = theme === 'dark' ? (isQadr ? '#060a14' : '#0f1614') : '#f7f4ef';
     document.documentElement.style.setProperty('background-color', bgColor, 'important');
     document.body.style.setProperty('background-color', bgColor, 'important');
     // Force iOS Safari to re-read theme-color by removing and recreating the meta tag
@@ -6641,7 +6718,7 @@
     const wavePath = document.getElementById('wave-path');
     if (theme === 'dark') {
       if (label)    label.innerHTML = (T[_currentLang] && T[_currentLang].darkMode) ? T[_currentLang].darkMode : 'MÖRKT<br>LÄGE';
-      if (wavePath) wavePath.setAttribute('fill', '#131f1b');
+      if (wavePath) wavePath.setAttribute('fill', isQadr ? '#080e1a' : '#131f1b');
     } else {
       if (label)    label.innerHTML = (T[_currentLang] && T[_currentLang].lightMode) ? T[_currentLang].lightMode : 'LJUST<br>LÄGE';
       if (wavePath) wavePath.setAttribute('fill', '#24645d');
