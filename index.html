@@ -3630,16 +3630,19 @@
         <div class="dcm-body">
           <div class="dcm-imam"><span class="imam-chip imam-${row.imam}"><span class="dot"></span>${row.imamLabel}</span></div>
           <div class="dcm-meta">
-            <span class="dcm-date">${row.datum}${badge}</span>
+            <span class="dcm-date">${row.datum}</span>
             ${row.day > 1 ? `<span class="dcm-hijri"><span class="hijri-moon">🌙</span>${row.day - 1} Ramadan</span>` : ''}
             ${moonSpan}
             <span class="dcm-day-label ${veckaClass}" data-vecka="${row.vecka}">${getDay(row.vecka)}</span>
             <span class="dcm-pages">s. ${row.sidor}</span>
           </div>
         </div>
-        <div class="dcm-right-wrap" style="display:flex;align-items:center;gap:12px;flex-shrink:0;margin-left:auto;">
-          <div class="dcm-audio-right" id="audio-mobile-${row.datum}" style="margin-left:0;"></div>
-          <div class="dcm-fav-wrap"><button class="fav-btn" data-day="${row.day}" title="Spara favorit" onclick="toggleFav(${row.day}, this);event.stopPropagation()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button></div>
+        <div class="dcm-right-wrap" style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;margin-left:auto;">
+          ${badge}
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="dcm-audio-right" id="audio-mobile-${row.datum}" style="margin-left:0;"></div>
+            <div class="dcm-fav-wrap"><button class="fav-btn" data-day="${row.day}" title="Spara favorit" onclick="toggleFav(${row.day}, this);event.stopPropagation()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button></div>
+          </div>
         </div>
       </div>
       <div class="dcm-surahs">
