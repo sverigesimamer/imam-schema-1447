@@ -3655,15 +3655,6 @@
           topEl.appendChild(starfield);
         }
 
-        // Laylatul Qadr pill bredvid Dagens Imam badge
-        const badgePill = todayCard.querySelector('.today-badge-pill');
-        if (badgePill) {
-          const qadrPill = document.createElement('span');
-          qadrPill.className = 'qadr-pill';
-          qadrPill.innerHTML = '<span class="qadr-pill-icon">🌙</span><span class="qadr-pill-text">Laylatul Qadr</span><span class="qadr-pill-dot"></span>';
-          badgePill.parentNode.insertBefore(qadrPill, badgePill.nextSibling);
-        }
-
         // Roterande ring-mån istället för vanlig moon-icon
         const moonRing = document.createElement('span');
         moonRing.className = 'qadr-moon-ring-wrap today-moon-wrap';
@@ -5675,44 +5666,83 @@
     }
 
     // ═══════════════════════════════════════════
-    // 1. BAKGRUND — djup svart-smaragd
+    // 1. BAKGRUND — anpassad efter natt-typ
     // ═══════════════════════════════════════════
+    const _isQadrNight = todayRow.day >= 21 && todayRow.day % 2 !== 0;
+
     const bg = ctx.createLinearGradient(0, 0, CW * 0.8, CH);
-    bg.addColorStop(0,    '#060e09');
-    bg.addColorStop(0.25, '#0a1a10');
-    bg.addColorStop(0.55, '#0e2418');
-    bg.addColorStop(0.80, '#122c1e');
-    bg.addColorStop(1,    '#163424');
+    if (_isQadrNight) {
+      // Himmelsk Ring: djup kosmisk blå-svart
+      bg.addColorStop(0,    '#040810');
+      bg.addColorStop(0.25, '#081428');
+      bg.addColorStop(0.55, '#0c1e38');
+      bg.addColorStop(0.80, '#102840');
+      bg.addColorStop(1,    '#143248');
+    } else {
+      bg.addColorStop(0,    '#060e09');
+      bg.addColorStop(0.25, '#0a1a10');
+      bg.addColorStop(0.55, '#0e2418');
+      bg.addColorStop(0.80, '#122c1e');
+      bg.addColorStop(1,    '#163424');
+    }
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, CW, CH);
 
-    // Atmosfärisk smaragd-glow mitten-vänster
-    const g1 = ctx.createRadialGradient(CW*0.15, CH*0.42, 0, CW*0.15, CH*0.42, CW*0.9);
-    g1.addColorStop(0,   'rgba(18,90,60,0.35)');
-    g1.addColorStop(0.5, 'rgba(18,90,60,0.08)');
-    g1.addColorStop(1,   'rgba(18,90,60,0)');
-    ctx.fillStyle = g1; ctx.fillRect(0,0,CW,CH);
+    if (_isQadrNight) {
+      // Blå nebula-glow
+      const gn1 = ctx.createRadialGradient(CW*0.2, CH*0.35, 0, CW*0.2, CH*0.35, CW*0.8);
+      gn1.addColorStop(0,   'rgba(30,60,140,0.20)');
+      gn1.addColorStop(0.5, 'rgba(30,60,140,0.05)');
+      gn1.addColorStop(1,   'rgba(30,60,140,0)');
+      ctx.fillStyle = gn1; ctx.fillRect(0,0,CW,CH);
 
-    // Guld aura uppe höger
-    const g2 = ctx.createRadialGradient(CW*0.9, CH*0.07, 0, CW*0.9, CH*0.07, CW*0.65);
-    g2.addColorStop(0,   'rgba(201,168,76,0.20)');
-    g2.addColorStop(0.35,'rgba(201,168,76,0.06)');
-    g2.addColorStop(1,   'rgba(201,168,76,0)');
-    ctx.fillStyle = g2; ctx.fillRect(0,0,CW,CH);
+      // Guld accent uppe
+      const gn2 = ctx.createRadialGradient(CW*0.85, CH*0.06, 0, CW*0.85, CH*0.06, CW*0.55);
+      gn2.addColorStop(0,   'rgba(201,168,76,0.18)');
+      gn2.addColorStop(0.4, 'rgba(201,168,76,0.04)');
+      gn2.addColorStop(1,   'rgba(201,168,76,0)');
+      ctx.fillStyle = gn2; ctx.fillRect(0,0,CW,CH);
 
-    // Subtil lila-guld glow nere höger
-    const g3 = ctx.createRadialGradient(CW*0.88, CH*0.88, 0, CW*0.88, CH*0.88, CW*0.5);
-    g3.addColorStop(0,   'rgba(120,80,200,0.08)');
-    g3.addColorStop(1,   'rgba(120,80,200,0)');
-    ctx.fillStyle = g3; ctx.fillRect(0,0,CW,CH);
+      // Stjärnfält
+      ctx.save();
+      for (let i = 0; i < 80; i++) {
+        const sx = Math.random() * CW;
+        const sy = Math.random() * CH;
+        const sr = 0.8 + Math.random() * 1.8;
+        const sa = 0.15 + Math.random() * 0.45;
+        ctx.beginPath();
+        ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,' + sa + ')';
+        ctx.fill();
+      }
+      ctx.restore();
+    } else {
+      // Vanlig smaragd-glow
+      const g1 = ctx.createRadialGradient(CW*0.15, CH*0.42, 0, CW*0.15, CH*0.42, CW*0.9);
+      g1.addColorStop(0,   'rgba(18,90,60,0.35)');
+      g1.addColorStop(0.5, 'rgba(18,90,60,0.08)');
+      g1.addColorStop(1,   'rgba(18,90,60,0)');
+      ctx.fillStyle = g1; ctx.fillRect(0,0,CW,CH);
+
+      const g2 = ctx.createRadialGradient(CW*0.9, CH*0.07, 0, CW*0.9, CH*0.07, CW*0.65);
+      g2.addColorStop(0,   'rgba(201,168,76,0.20)');
+      g2.addColorStop(0.35,'rgba(201,168,76,0.06)');
+      g2.addColorStop(1,   'rgba(201,168,76,0)');
+      ctx.fillStyle = g2; ctx.fillRect(0,0,CW,CH);
+
+      const g3 = ctx.createRadialGradient(CW*0.88, CH*0.88, 0, CW*0.88, CH*0.88, CW*0.5);
+      g3.addColorStop(0,   'rgba(120,80,200,0.08)');
+      g3.addColorStop(1,   'rgba(120,80,200,0)');
+      ctx.fillStyle = g3; ctx.fillRect(0,0,CW,CH);
+    }
 
     // ═══════════════════════════════════════════
     // 2. GIRIH-MÖNSTER — täckande islamiskt geometriskt gitter
     // ═══════════════════════════════════════════
     (function drawGirih() {
       ctx.save();
-      ctx.globalAlpha = 0.09;
-      ctx.strokeStyle = 'rgba(201,168,76,1)';
+      ctx.globalAlpha = _isQadrNight ? 0.07 : 0.09;
+      ctx.strokeStyle = _isQadrNight ? 'rgba(160,190,255,1)' : 'rgba(201,168,76,1)';
       ctx.lineWidth   = 1.4;
 
       // Girih bygger på ett gitter av regelbundna 10-hörningar (dekagoner)
@@ -5787,12 +5817,39 @@
     diamond(CX - 60, 80, 8, 0.5);
     diamond(CX + 60, 80, 8, 0.5);
 
-    // Moské-emoji stor, subtil
-    ctx.font = '80px serif';
-    ctx.textAlign = 'center';
-    ctx.globalAlpha = 0.18;
-    ctx.fillText('🕌', CX, 200);
-    ctx.globalAlpha = 1;
+    // Moské-emoji / Qadr-mån
+    if (_isQadrNight) {
+      // Roterande ring-mån (statisk version för canvas)
+      const moonCX = CX, moonCY = 190, moonR = 32;
+      // Yttre ring
+      ctx.save();
+      ctx.beginPath(); ctx.arc(moonCX, moonCY, moonR + 12, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(201,168,76,0.20)'; ctx.lineWidth = 1.5; ctx.stroke();
+      // Inre ring — delvis synlig (simulerar rotation)
+      ctx.beginPath(); ctx.arc(moonCX, moonCY, moonR + 6, -0.8, 1.8);
+      ctx.strokeStyle = 'rgba(201,168,76,0.55)'; ctx.lineWidth = 2; ctx.stroke();
+      // Guld moon-cirkel med glow
+      const moonGrad = ctx.createRadialGradient(moonCX-8, moonCY-8, 0, moonCX, moonCY, moonR);
+      moonGrad.addColorStop(0, '#e8c97a');
+      moonGrad.addColorStop(0.6, '#c9a84c');
+      moonGrad.addColorStop(1, '#9a6f0a');
+      ctx.beginPath(); ctx.arc(moonCX, moonCY, moonR, 0, Math.PI * 2);
+      ctx.fillStyle = moonGrad; ctx.fill();
+      ctx.shadowColor = 'rgba(201,168,76,0.6)'; ctx.shadowBlur = 24;
+      ctx.beginPath(); ctx.arc(moonCX, moonCY, moonR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+      // Crescent inuti månen
+      ctx.beginPath(); ctx.arc(moonCX+10, moonCY-6, moonR*0.7, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(154,111,10,0.5)'; ctx.fill();
+      ctx.restore();
+    } else {
+      ctx.font = '80px serif';
+      ctx.textAlign = 'center';
+      ctx.globalAlpha = 0.18;
+      ctx.fillText('🕌', CX, 200);
+      ctx.globalAlpha = 1;
+    }
 
     // ═══════════════════════════════════════════
     // 4. "DAGENS IMAM" CHIP
@@ -5985,18 +6042,24 @@
     const panelH  = CH - panelY - 140;
     const panelPad = 56;
 
-    // Panel bakgrund — frostat glas
+    // Panel bakgrund — frostat glas (blåtonad för qadr)
     const panelBg = ctx.createLinearGradient(0, panelY, 0, panelY+panelH);
-    panelBg.addColorStop(0, 'rgba(255,255,255,0.05)');
-    panelBg.addColorStop(1, 'rgba(255,255,255,0.02)');
+    if (_isQadrNight) {
+      panelBg.addColorStop(0, 'rgba(160,190,255,0.06)');
+      panelBg.addColorStop(1, 'rgba(160,190,255,0.02)');
+    } else {
+      panelBg.addColorStop(0, 'rgba(255,255,255,0.05)');
+      panelBg.addColorStop(1, 'rgba(255,255,255,0.02)');
+    }
     ctx.fillStyle = panelBg;
     rrect(panelPad, panelY, CW-panelPad*2, panelH, 36); ctx.fill();
 
     // Panel border
     const panelBorder = ctx.createLinearGradient(0, panelY, 0, panelY+panelH);
-    panelBorder.addColorStop(0, 'rgba(201,168,76,0.25)');
-    panelBorder.addColorStop(0.5,'rgba(255,255,255,0.06)');
-    panelBorder.addColorStop(1, 'rgba(201,168,76,0.12)');
+    const _borderAccent = _isQadrNight ? 'rgba(160,190,255,' : 'rgba(201,168,76,';
+    panelBorder.addColorStop(0, _borderAccent + '0.25)');
+    panelBorder.addColorStop(0.5, 'rgba(255,255,255,0.06)');
+    panelBorder.addColorStop(1, _borderAccent + '0.12)');
     ctx.strokeStyle = panelBorder;
     ctx.lineWidth = 1.5;
     rrect(panelPad, panelY, CW-panelPad*2, panelH, 36); ctx.stroke();
@@ -6004,10 +6067,10 @@
     // Vertikal separator
     const sepX = CW/2;
     const sepGrad = ctx.createLinearGradient(0, panelY+40, 0, panelY+panelH-40);
-    sepGrad.addColorStop(0, 'rgba(201,168,76,0)');
-    sepGrad.addColorStop(0.3,'rgba(201,168,76,0.25)');
-    sepGrad.addColorStop(0.7,'rgba(201,168,76,0.25)');
-    sepGrad.addColorStop(1, 'rgba(201,168,76,0)');
+    sepGrad.addColorStop(0, _borderAccent + '0)');
+    sepGrad.addColorStop(0.3, _borderAccent + '0.25)');
+    sepGrad.addColorStop(0.7, _borderAccent + '0.25)');
+    sepGrad.addColorStop(1, _borderAccent + '0)');
     ctx.strokeStyle = sepGrad; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(sepX, panelY+40); ctx.lineTo(sepX, panelY+panelH-40); ctx.stroke();
 
@@ -6016,43 +6079,48 @@
     const colMaxW = CW/2 - panelPad*1.5;
     const infoY   = panelY + 72;
 
+    // Label-färg: guld normalt, ljusblå-vit för qadr
+    const _labelClr = _isQadrNight ? 'rgba(160,190,255,0.65)' : 'rgba(201,168,76,0.60)';
+    const _valueClr = '#ffffff';
+    const _valueShadow = _isQadrNight ? 'rgba(80,130,220,0.4)' : 'rgba(45,156,110,0.4)';
+    const _underlineClr = _isQadrNight ? 'rgba(160,190,255,0.20)' : 'rgba(201,168,76,0.20)';
+    const _refClr = _isQadrNight ? 'rgba(160,190,255,0.55)' : 'rgba(201,168,76,0.55)';
+
     // ── Kolumn 1: SIDOR ──
-    // Label
     ctx.font = '700 22px "DM Sans", sans-serif';
-    ctx.fillStyle = 'rgba(201,168,76,0.60)';
+    ctx.fillStyle = _labelClr;
     ctx.textAlign = 'left';
     ctx.letterSpacing = '0.14em';
     ctx.fillText((t.labelPages || 'SIDOR IDAG').toUpperCase(), col1X, infoY);
     ctx.letterSpacing = '0';
 
-    // Guld understrykning under label
-    ctx.strokeStyle = 'rgba(201,168,76,0.20)'; ctx.lineWidth = 1;
+    ctx.strokeStyle = _underlineClr; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(col1X, infoY+10); ctx.lineTo(col1X+180, infoY+10); ctx.stroke();
 
     // Sidor-värde
     ctx.font = '500 110px "Cormorant Garamond", serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(45,156,110,0.4)';
+    ctx.fillStyle = _valueClr;
+    ctx.shadowColor = _valueShadow;
     ctx.shadowBlur  = 20;
     ctx.fillText(todayRow.sidor, col1X, infoY+128);
     ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
 
     // ── Kolumn 2: SUROR ──
     ctx.font = '700 22px "DM Sans", sans-serif';
-    ctx.fillStyle = 'rgba(201,168,76,0.60)';
+    ctx.fillStyle = _labelClr;
     ctx.letterSpacing = '0.14em';
     ctx.fillText((t.labelSurahs || 'SUROR').toUpperCase(), col2X, infoY);
     ctx.letterSpacing = '0';
 
-    ctx.strokeStyle = 'rgba(201,168,76,0.20)'; ctx.lineWidth = 1;
+    ctx.strokeStyle = _underlineClr; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(col2X, infoY+10); ctx.lineTo(col2X+120, infoY+10); ctx.stroke();
 
-    // Suror-namn — radbryt med fallback
+    // Suror-namn
     ctx.font = '500 58px "Cormorant Garamond", serif';
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = _valueClr;
     const surahParts = todayRow.surahs.split(', ');
     let sLine = '', sY = infoY+72, sLH = 68;
-    ctx.shadowColor = 'rgba(45,156,110,0.3)'; ctx.shadowBlur = 16;
+    ctx.shadowColor = _valueShadow; ctx.shadowBlur = 16;
     for (let i = 0; i < surahParts.length; i++) {
       const test = sLine ? sLine + ', ' + surahParts[i] : surahParts[i];
       if (ctx.measureText(test).width > colMaxW && sLine) {
@@ -6072,7 +6140,7 @@
 
     // Ayat-ref
     ctx.font = '400 32px "DM Sans", sans-serif';
-    ctx.fillStyle = 'rgba(201,168,76,0.55)';
+    ctx.fillStyle = _refClr;
     ctx.fillText(todayRow.tooltip, col2X, sY + 6);
 
     // ═══════════════════════════════════════════
