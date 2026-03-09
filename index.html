@@ -21,8 +21,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Sveriges Imamer" />
   <link rel="apple-touch-icon" href="favicon.ico" />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
-  <link href="https://fonts.cdnfonts.com/css/digital-7-mono" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet" /></noscript>
   <style>
     /* ── IMAM COLOURS — unchanged in both themes ── */
     :root {
@@ -501,7 +503,7 @@
     .today-countdown-label { font-size: 0.60rem; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; transition: color 0.6s ease; }
     .isha-done .today-countdown-label { color: #1d7a4e; }
     .timer-wrap { position: relative; min-height: 2.2rem; display: flex; align-items: center; }
-    .today-timer { font-family: 'Digital-7 Mono', 'Digital-7', monospace; font-size: 2.0rem; font-weight: 400; color: var(--primary-dark); letter-spacing: 0.05em; line-height: 1; transition: opacity 0.5s ease, transform 0.5s ease, color 0.35s; }
+    .today-timer { font-family: 'Share Tech Mono', 'Courier New', monospace; font-size: 2.0rem; font-weight: 400; color: var(--primary-dark); letter-spacing: 0.05em; line-height: 1; transition: opacity 0.5s ease, transform 0.5s ease, color 0.35s; }
     .today-timer.fading-out { opacity: 0; transform: translateY(-6px); pointer-events: none; }
     .today-timer-done { position: absolute; left: 0; font-family: 'DM Sans', sans-serif; font-size: 1.05rem; font-weight: 600; color: #1d7a4e; opacity: 0; transform: translateY(6px); transition: opacity 0.5s ease 0.3s, transform 0.5s ease 0.3s; white-space: nowrap; }
     .today-timer-done.fading-in { opacity: 1; transform: translateY(0); }
@@ -2790,7 +2792,7 @@
       ishaLabel:       'Tid kvar till Isha',
       ishaDoneLabel:   'Isha',
       ishaDoneTimer:   '🕌 Bönetiden är inne',
-      ishaPrefix:      'Isha-bönen går in kl. ',
+      ishaPrefix:      'Isha-bönen börjar kl. ',
       ishaDone:        'Isha-bönen är inne sedan kl. ',
       notifyMe:        'Notifiera mig',
       showMore:         'Visa alla ▾',
@@ -3235,9 +3237,9 @@
     {day:15, sidor:'467–476',imam:'noor',        imamLabel:'Noor',               datum:'2026-03-03', vecka:'Tuesday',   surahs:'Ghafir',                                                                                                            tooltip:'40:1 – 40:85'},
     {day:16, sidor:'476–486',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-03-04', vecka:'Wednesday',   surahs:'Fussilat, Ash-Shura',                                                                                               tooltip:'41:1 – 42:26'},
     {day:17, sidor:'486–495',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-03-05', vecka:'Thursday',  surahs:'Ash-Shura, Az-Zukhruf',                                                                                             tooltip:'42:27 – 43:89'},
-    {day:18, sidor:'496–506',imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-03-06', vecka:'Friday',   surahs:'Ad-Dukhan, Al-Jathiyah, Al-Ahqaf',                                                                                  tooltip:'44:1 – 46:35'},
+    {day:18, sidor:'496–506',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-03-06', vecka:'Friday',   surahs:'Ad-Dukhan, Al-Jathiyah, Al-Ahqaf',                                                                                  tooltip:'44:1 – 46:35'},
     {day:19, sidor:'507–515',imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-03-07', vecka:'Saturday',   surahs:'Muhammad, Al-Fath',                                                                                                 tooltip:'47:1 – 48:29'},
-    {day:20, sidor:'515–523',imam:'saed',        imamLabel:'Saed Magan',         datum:'2026-03-08', vecka:'Sunday',   surahs:'Al-Hujurat, Qaf, Adh-Dhariyat',                                                                                     tooltip:'49:1 – 51:60', moonText:H_SEEK_ODD},
+    {day:20, sidor:'515–523',imam:'yacquub',     imamLabel:'Yacquub',            datum:'2026-03-08', vecka:'Sunday',   surahs:'Al-Hujurat, Qaf, Adh-Dhariyat',                                                                                     tooltip:'49:1 – 51:60', moonText:H_SEEK_ODD},
     {day:21, sidor:'523–531',imam:'noor',        imamLabel:'Noor',               datum:'2026-03-09', vecka:'Monday',   surahs:'At-Tur, An-Najm, Al-Qamar',                                                                                         tooltip:'52:1 – 54:55', moonText:H_SEEK_ODD},
     {day:22, sidor:'531–539',imam:'mohammed',    imamLabel:'Mohammed Haji',      datum:'2026-03-10', vecka:'Tuesday',   surahs:'Ar-Rahman, Al-Waqiah, Al-Hadid',                                                                                    tooltip:'55:1 – 57:15', moonText:H_STAND_UP},
     {day:23, sidor:'539–548',imam:'abdurrahman', imamLabel:'Abdurrahman Sudani', datum:'2026-03-11', vecka:'Wednesday',   surahs:'Al-Hadid, Al-Mujadilah, Al-Hashr',                                                                                  tooltip:'57:16 – 59:24', moonText:H_SEEK_ODD},
@@ -4688,35 +4690,25 @@
 
     // Skip ±30s
     document.getElementById('sp-skip-back-btn')?.addEventListener('click', e => {
-      if (!_activeDatum) return;
-      const _skipType = _activeTrackType[_activeDatum] || 'tarawih';
-      const _skipAudio = _skipType === 'isha' ? ishaState[_activeDatum] : audioState[_activeDatum];
-      if (!_skipAudio) return;
-      _skipAudio.currentTime = Math.max(0, _skipAudio.currentTime - 30);
+      if (!_activeDatum || !audioState[_activeDatum]) return;
+      audioState[_activeDatum].currentTime = Math.max(0, audioState[_activeDatum].currentTime - 30);
       e.stopPropagation();
     });
     document.getElementById('sp-skip-fwd-btn')?.addEventListener('click', e => {
-      if (!_activeDatum) return;
-      const _skipType = _activeTrackType[_activeDatum] || 'tarawih';
-      const _skipAudio = _skipType === 'isha' ? ishaState[_activeDatum] : audioState[_activeDatum];
-      if (!_skipAudio) return;
-      _skipAudio.currentTime = Math.min(_skipAudio.duration || 0, _skipAudio.currentTime + 30);
+      if (!_activeDatum || !audioState[_activeDatum]) return;
+      const a = audioState[_activeDatum];
+      audioState[_activeDatum].currentTime = Math.min(a.duration || 0, a.currentTime + 30);
       e.stopPropagation();
     });
     document.getElementById('sp-mini-skip-back')?.addEventListener('click', e => {
-      if (!_activeDatum) return;
-      const _skipType = _activeTrackType[_activeDatum] || 'tarawih';
-      const _skipAudio = _skipType === 'isha' ? ishaState[_activeDatum] : audioState[_activeDatum];
-      if (!_skipAudio) return;
-      _skipAudio.currentTime = Math.max(0, _skipAudio.currentTime - 30);
+      if (!_activeDatum || !audioState[_activeDatum]) return;
+      audioState[_activeDatum].currentTime = Math.max(0, audioState[_activeDatum].currentTime - 30);
       e.stopPropagation();
     });
     document.getElementById('sp-mini-skip-fwd')?.addEventListener('click', e => {
-      if (!_activeDatum) return;
-      const _skipType = _activeTrackType[_activeDatum] || 'tarawih';
-      const _skipAudio = _skipType === 'isha' ? ishaState[_activeDatum] : audioState[_activeDatum];
-      if (!_skipAudio) return;
-      _skipAudio.currentTime = Math.min(_skipAudio.duration || 0, _skipAudio.currentTime + 30);
+      if (!_activeDatum || !audioState[_activeDatum]) return;
+      const a = audioState[_activeDatum];
+      audioState[_activeDatum].currentTime = Math.min(a.duration || 0, a.currentTime + 30);
       e.stopPropagation();
     });
 
@@ -6123,6 +6115,7 @@
       // Senaste natten överst alltid
       found.sort((a, b) => b.row.day - a.row.day);
       newItems = found;
+      window._bellAudioFound = found; // Exponera för _getAudioSnapshot
       renderPanel(found, seen);
       const unread = found.filter(f => !f.seen).length;
       updateBadge(unread);
@@ -6293,8 +6286,8 @@
       }
     });
 
-    // Run check
-    checkNewAudio();
+    // Run check — fördröj så sidan hinner rendera först
+    setTimeout(checkNewAudio, 4000);
     window._bellRenderPanel = () => {
       const seenNow = JSON.parse(localStorage.getItem(SEEN_KEY) || '{}');
       renderPanel(newItems, seenNow);
@@ -6972,7 +6965,11 @@
     let _lastCheck  = 0;
 
     // Bygg en snapshot av vilka datum som har mp3
+    // Återanvänd data från checkNewAudio (bell-systemet) om det redan körts
     async function _getAudioSnapshot() {
+      if (window._bellAudioFound && window._bellAudioFound.length > 0) {
+        return window._bellAudioFound.map(f => f.row.datum).sort();
+      }
       const found = [];
       const loc = window.location.href;
       const base = loc.substring(0, loc.lastIndexOf('/') + 1);
@@ -7055,7 +7052,7 @@
           const snap = await _getAudioSnapshot();
           localStorage.setItem(CHECK_KEY, JSON.stringify(snap));
         } catch {}
-      }, 5000); // Vänta 5s efter laddning
+      }, 8000); // Vänta 8s efter laddning (efter checkNewAudio på 4s)
     });
   })();
 
