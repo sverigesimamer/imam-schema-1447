@@ -424,6 +424,97 @@
     .today-badge-pill-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold-light); flex-shrink: 0; box-shadow: 0 0 5px rgba(201,168,76,0.6); }
     .today-badge-pill-text { font-size: 0.60rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-light); }
     .today-card-header-content { position: relative; z-index: 2; }
+
+    /* ══ HIMMELSK RING — Laylatul Qadr today-card (udda nätter i sista 10) ══ */
+    .today-card.qadr-night .today-card-top {
+      background: linear-gradient(145deg, rgba(10,15,35,0.98) 0%, rgba(15,30,45,0.97) 40%, rgba(20,45,55,0.95) 70%, rgba(25,60,65,0.93) 100%);
+    }
+    .today-card.qadr-night .today-card-top::before {
+      background: radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.10) 0%, transparent 55%), radial-gradient(ellipse at 20% 80%, rgba(58,123,213,0.10) 0%, transparent 45%);
+    }
+    /* Stjärnfält */
+    .qadr-starfield {
+      position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1;
+    }
+    .qadr-star {
+      position: absolute; border-radius: 50%; background: #fff;
+      animation: qadrStarTwinkle var(--twinkle-dur, 3s) ease-in-out infinite;
+      animation-delay: var(--twinkle-delay, 0s);
+    }
+    @keyframes qadrStarTwinkle {
+      0%, 100% { opacity: 0.10; transform: scale(0.8); }
+      50% { opacity: 0.65; transform: scale(1.2); }
+    }
+    /* Roterande ring runt månikonen */
+    .qadr-moon-ring-wrap {
+      position: relative; width: 36px; height: 36px;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-left: 8px; vertical-align: middle;
+    }
+    .qadr-ring-outer {
+      position: absolute; inset: -4px; border-radius: 50%;
+      border: 1.5px solid transparent;
+      border-top-color: rgba(201,168,76,0.7);
+      border-right-color: rgba(201,168,76,0.3);
+      animation: qadrRingRotate 3s linear infinite;
+    }
+    .qadr-ring-inner {
+      position: absolute; inset: -8px; border-radius: 50%;
+      border: 1px solid transparent;
+      border-bottom-color: rgba(201,168,76,0.25);
+      animation: qadrRingRotate 5s linear infinite reverse;
+    }
+    @keyframes qadrRingRotate { to { transform: rotate(360deg); } }
+    .qadr-moon-core {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: linear-gradient(135deg, #9a6f0a, #c9a84c);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 12px rgba(201,168,76,0.5), 0 0 24px rgba(201,168,76,0.2);
+      animation: moonGlow 2.2s ease-in-out infinite;
+      cursor: pointer;
+    }
+    /* Natt-ribbon */
+    .qadr-night-ribbon {
+      position: relative; z-index: 2;
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 12px; margin-bottom: 4px;
+    }
+    .qadr-ribbon-line {
+      flex: 1; height: 1px;
+    }
+    .qadr-ribbon-line.l { background: linear-gradient(to right, rgba(201,168,76,0.4), transparent); }
+    .qadr-ribbon-line.r { background: linear-gradient(to left, rgba(201,168,76,0.4), transparent); }
+    .qadr-ribbon-text {
+      font-size: 0.55rem; font-weight: 700; letter-spacing: 0.16em;
+      text-transform: uppercase; color: rgba(201,168,76,0.6);
+      white-space: nowrap;
+    }
+    /* Laylatul Qadr pill — visas bredvid Dagens Imam */
+    .qadr-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.35);
+      border-radius: 100px; padding: 4px 12px; margin-left: 8px;
+      animation: qadrPillPulse 2.5s ease-in-out infinite;
+    }
+    .qadr-pill-icon { font-size: 0.75rem; line-height: 1; }
+    .qadr-pill-text {
+      font-size: 0.58rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--gold-light);
+    }
+    .qadr-pill-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--gold-light);
+      box-shadow: 0 0 6px rgba(201,168,76,0.8);
+      animation: qadrDotPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes qadrPillPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+      50% { box-shadow: 0 0 16px 3px rgba(201,168,76,0.12); }
+    }
+    @keyframes qadrDotPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.6); }
+    }
     .today-imam-name { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.65rem, 5vw, 2.2rem); font-weight: 600; color: #ffffff; line-height: 1.1; letter-spacing: 0.01em; margin-bottom: 6px; display: block; }
     .today-date-row { display: flex; align-items: center; gap: 8px; }
     .today-date-text { font-size: 0.82rem; color: rgba(255,255,255,0.55); font-weight: 400; letter-spacing: 0.02em; }
@@ -3543,21 +3634,73 @@
       dateEl.textContent = dateLabel;
       const isTodayOdd = todayData.day % 2 !== 0;
       const todayMoonText = getMoonText(todayData);
-      const moonFill = isTodayOdd ? '#fff2c0' : 'white';
-      const oddClass = isTodayOdd ? ' moon-odd-today' : '';
-      const moonWrap = document.createElement('span');
-      moonWrap.className = 'today-moon-wrap';
-      moonWrap.style.marginLeft = '8px';
-      moonWrap.innerHTML = `<span class="today-moon-icon${oddClass}">${moonSvg(moonFill, 12)}</span>`;
-      moonWrap.dataset.moontextkey = todayData.moonText || DEFAULT_MOON_TEXT;
-      dateEl.parentNode.appendChild(moonWrap);
 
-      // Inline hadith in today-card header
-      const headerContent = document.querySelector('.today-card-header-content');
-      const hadithDiv = document.createElement('div');
-      hadithDiv.className = 'today-hadith-inline';
-      hadithDiv.innerHTML = `<span class="hadith-label">🌙 Laylatul-Qadr</span>${todayMoonText}`;
-      headerContent.appendChild(hadithDiv);
+      // ── Himmelsk Ring: qadr-night klass + stjärnfält (bara udda nätter) ──
+      if (isTodayOdd) {
+        const todayCard = document.getElementById('today-card');
+        todayCard.classList.add('qadr-night');
+
+        // Stjärnfält i headern
+        const topEl = todayCard.querySelector('.today-card-top');
+        if (topEl) {
+          const starfield = document.createElement('div');
+          starfield.className = 'qadr-starfield';
+          for (let i = 0; i < 25; i++) {
+            const star = document.createElement('div');
+            star.className = 'qadr-star';
+            const size = 1.5 + Math.random() * 2;
+            star.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*80}%;--twinkle-dur:${2+Math.random()*3}s;--twinkle-delay:${Math.random()*2}s;`;
+            starfield.appendChild(star);
+          }
+          topEl.appendChild(starfield);
+        }
+
+        // Laylatul Qadr pill bredvid Dagens Imam badge
+        const badgePill = todayCard.querySelector('.today-badge-pill');
+        if (badgePill) {
+          const qadrPill = document.createElement('span');
+          qadrPill.className = 'qadr-pill';
+          qadrPill.innerHTML = '<span class="qadr-pill-icon">🌙</span><span class="qadr-pill-text">Laylatul Qadr</span><span class="qadr-pill-dot"></span>';
+          badgePill.parentNode.insertBefore(qadrPill, badgePill.nextSibling);
+        }
+
+        // Roterande ring-mån istället för vanlig moon-icon
+        const moonRing = document.createElement('span');
+        moonRing.className = 'qadr-moon-ring-wrap today-moon-wrap';
+        moonRing.dataset.moontextkey = todayData.moonText || DEFAULT_MOON_TEXT;
+        moonRing.innerHTML = `<div class="qadr-ring-outer"></div><div class="qadr-ring-inner"></div><div class="qadr-moon-core">${moonSvg('#fff2c0', 12)}</div>`;
+        dateEl.parentNode.appendChild(moonRing);
+
+        // Natt-ribbon under datum
+        const headerContent = document.querySelector('.today-card-header-content');
+        const ribbon = document.createElement('div');
+        ribbon.className = 'qadr-night-ribbon';
+        const nightLabel = (T[_currentLang].night || 'Natt') + ' ' + todayData.day;
+        ribbon.innerHTML = `<div class="qadr-ribbon-line l"></div><span class="qadr-ribbon-text">✦ ${nightLabel} · De sista tio ✦</span><div class="qadr-ribbon-line r"></div>`;
+        headerContent.appendChild(ribbon);
+
+        // Inline hadith
+        const hadithDiv = document.createElement('div');
+        hadithDiv.className = 'today-hadith-inline';
+        hadithDiv.innerHTML = `<span class="hadith-label">✨ Laylatul-Qadr</span>${todayMoonText}`;
+        headerContent.appendChild(hadithDiv);
+
+      } else {
+        // Jämn natt i sista 10 — vanlig moon-icon + hadith
+        const moonFill = 'white';
+        const moonWrap = document.createElement('span');
+        moonWrap.className = 'today-moon-wrap';
+        moonWrap.style.marginLeft = '8px';
+        moonWrap.innerHTML = `<span class="today-moon-icon">${moonSvg(moonFill, 12)}</span>`;
+        moonWrap.dataset.moontextkey = todayData.moonText || DEFAULT_MOON_TEXT;
+        dateEl.parentNode.appendChild(moonWrap);
+
+        const headerContent = document.querySelector('.today-card-header-content');
+        const hadithDiv = document.createElement('div');
+        hadithDiv.className = 'today-hadith-inline';
+        hadithDiv.innerHTML = `<span class="hadith-label">🌙 Laylatul-Qadr</span>${todayMoonText}`;
+        headerContent.appendChild(hadithDiv);
+      }
     } else {
       document.getElementById('today-date-label').textContent = dateLabel;
     }
@@ -5759,9 +5902,86 @@
     islamicStar(CX+200, divY, 10, 4, 6, 0.3);
 
     // ═══════════════════════════════════════════
+    // 7.5 HADITH — visas för de sista 10 nätterna (dag >= 21)
+    // ═══════════════════════════════════════════
+    let hadithEndY = divY + 60; // default om ingen hadith
+
+    if (todayRow.day >= 21) {
+      const hadithKey = todayRow.moonText || DEFAULT_MOON_TEXT;
+      const hadithFull = (t.hadith && t.hadith[hadithKey]) ? t.hadith[hadithKey] : T['sv'].hadith[hadithKey] || '';
+
+      if (hadithFull) {
+        const hPad = 72;
+        const hBoxX = hPad;
+        const hBoxW = CW - hPad * 2;
+        const hTopY = divY + 50;
+
+        // Bakgrund — mörk glasmorfism med guldkant
+        const hBg = ctx.createLinearGradient(hBoxX, hTopY, hBoxX + hBoxW, hTopY + 200);
+        hBg.addColorStop(0, 'rgba(201,168,76,0.08)');
+        hBg.addColorStop(1, 'rgba(201,168,76,0.03)');
+        ctx.fillStyle = hBg;
+
+        // Mät hadith-text för att bestämma boxhöjd
+        ctx.font = '400 italic 36px "Cormorant Garamond", serif';
+        const maxTextW = hBoxW - 80;
+
+        // Radbryt hadith-text
+        const words = hadithFull.split(' ');
+        const lines = [];
+        let currentLine = '';
+        for (const word of words) {
+          const testLine = currentLine ? currentLine + ' ' + word : word;
+          if (ctx.measureText(testLine).width > maxTextW && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        }
+        if (currentLine) lines.push(currentLine);
+
+        const lineH = 52;
+        const textBlockH = lines.length * lineH;
+        const hBoxH = textBlockH + 110; // padding top/bottom + label
+
+        // Rita box
+        rrect(hBoxX, hTopY, hBoxW, hBoxH, 24); ctx.fill();
+
+        // Guldkant vänster
+        ctx.fillStyle = 'rgba(201,168,76,0.45)';
+        rrect(hBoxX, hTopY, 3, hBoxH, 2); ctx.fill();
+
+        // Border
+        ctx.strokeStyle = 'rgba(201,168,76,0.15)';
+        ctx.lineWidth = 1;
+        rrect(hBoxX, hTopY, hBoxW, hBoxH, 24); ctx.stroke();
+
+        // 🌙 LAYLATUL-QADR label
+        ctx.font = '700 20px "DM Sans", sans-serif';
+        ctx.fillStyle = 'rgba(201,168,76,0.65)';
+        ctx.textAlign = 'left';
+        const lblY = hTopY + 38;
+        ctx.fillText('🌙  LAYLATUL-QADR', hBoxX + 32, lblY);
+
+        // Hadith-text — italic
+        ctx.font = '400 italic 36px "Cormorant Garamond", serif';
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.textAlign = 'left';
+        let hTextY = lblY + 48;
+        for (const line of lines) {
+          ctx.fillText(line, hBoxX + 32, hTextY);
+          hTextY += lineH;
+        }
+
+        hadithEndY = hTopY + hBoxH + 40;
+      }
+    }
+
+    // ═══════════════════════════════════════════
     // 8. INFO-PANEL — glassmorfism med två kolumner
     // ═══════════════════════════════════════════
-    const panelY  = divY + 60;
+    const panelY  = hadithEndY;
     const panelH  = CH - panelY - 140;
     const panelPad = 56;
 
