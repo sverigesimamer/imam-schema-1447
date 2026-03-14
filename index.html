@@ -4009,6 +4009,25 @@
     const wrap = document.getElementById('sp-segment-wrap');
     if (!wrap) return;
     const hasIsha = !!ishaUrls[datum];
+    const isOnlyIsha = ishaOnlyDates.has(datum);
+
+    // Isha-only: visa segment-kontroll med enbart Isha-knappen
+    if (isOnlyIsha && hasIsha) {
+      wrap.classList.add('visible');
+      const btnT = document.getElementById('sp-seg-tarawih');
+      const btnI = document.getElementById('sp-seg-isha');
+      if (btnT) btnT.style.display = 'none';
+      if (btnI) btnI.style.display = '';
+      _updateSegmentPill('isha');
+      return;
+    }
+
+    // Normalt: återställ synlighet på båda knapparna
+    const btnT = document.getElementById('sp-seg-tarawih');
+    const btnI = document.getElementById('sp-seg-isha');
+    if (btnT) btnT.style.display = '';
+    if (btnI) btnI.style.display = '';
+
     wrap.classList.toggle('visible', hasIsha);
     if (!hasIsha) return;
     // Set pill to current active track
@@ -4019,6 +4038,11 @@
   function hideSegmentControl() {
     const wrap = document.getElementById('sp-segment-wrap');
     if (wrap) wrap.classList.remove('visible');
+    // Återställ knapp-synlighet (kan ha dolts för isha-only)
+    const btnT = document.getElementById('sp-seg-tarawih');
+    const btnI = document.getElementById('sp-seg-isha');
+    if (btnT) btnT.style.display = '';
+    if (btnI) btnI.style.display = '';
   }
 
   function _updateSegmentPill(type) {
@@ -4401,18 +4425,28 @@
     if (datum === _activeDatum) updateStickyPlayBtn(isPlaying);
   }
 
-  function createPlayBtn(datum) {
+  function createPlayBtn(datum, ishaOnly) {
     const btn = document.createElement('button');
-    btn.className = 'play-btn';
+    btn.className = 'play-btn' + (ishaOnly ? ' isha-only-btn' : '');
     btn.setAttribute('data-datum', datum);
-    btn.title = 'Spela upp recitation';
+    btn.title = ishaOnly ? 'Spela Isha-recitation' : 'Spela upp recitation';
     btn.innerHTML = PLAY_SVG;
     btn.addEventListener('click', e => {
       e.stopPropagation();
       triggerPlayBtnSpring(btn);
-      // Alltid starta/pausa tarawih för denna natt
-      // toggleAudio hanterar att stoppa allt annat via _stopAll
-      toggleAudio(datum);
+      if (ishaOnly) {
+        // Isha-only natt: öppna spelaren med isha-spår direkt
+        _activeTrackType[datum] = 'isha';
+        if (_activeDatum !== datum) {
+          _stopAll(datum, 'isha');
+          openPlayer(datum);
+        }
+        _toggleIshaAudio(datum);
+      } else {
+        // Alltid starta/pausa tarawih för denna natt
+        // toggleAudio hanterar att stoppa allt annat via _stopAll
+        toggleAudio(datum);
+      }
     });
     return btn;
   }
@@ -5272,8 +5306,10 @@
 
     // ── Uppdatera nedladdningsknappen för nytt datum ──
     if (window._onPlayerOpen) window._onPlayerOpen(datum);
-    // Segment control: reset to tarawih unless isha is actively playing for this datum
-    if (!ishaState[datum] || ishaState[datum].paused) {
+    // Segment control: isha-only → alltid isha; annars tarawih om isha ej spelar
+    if (ishaOnlyDates.has(datum)) {
+      _activeTrackType[datum] = 'isha';
+    } else if (!ishaState[datum] || ishaState[datum].paused) {
       _activeTrackType[datum] = 'tarawih';
     }
     updatePlayingRow(datum);
@@ -5314,6 +5350,14 @@
   }
 
   async function toggleAudio(datum) {
+    // Isha-only datum: delegera direkt till isha-toggle (ingen tarawih-fil)
+    if (ishaOnlyDates.has(datum)) {
+      _activeTrackType[datum] = 'isha';
+      if (_activeDatum !== datum) openPlayer(datum);
+      _toggleIshaAudio(datum);
+      return;
+    }
+
     // Blockera om ett toggle redan pågår — förhindrar dubbelklick-race
     if (_toggleBusy) return;
     _toggleBusy = true;
@@ -5435,10 +5479,10 @@
     }
   }
 
-  function injectPlayButtons(datum) {
+  function injectPlayButtons(datum, ishaOnly) {
     ['audio-desktop-' + datum, 'audio-mobile-' + datum].forEach(id => {
       const cell = document.getElementById(id);
-      if (cell && !cell.querySelector('.play-btn')) cell.appendChild(createPlayBtn(datum));
+      if (cell && !cell.querySelector('.play-btn')) cell.appendChild(createPlayBtn(datum, ishaOnly));
     });
   }
 
@@ -5447,6 +5491,7 @@
   const ishaUrls  = {};
   const ishaState = {};
   const ishaImams = {};  // datum → imam name extracted from isha filename
+  const ishaOnlyDates = new Set();  // datum som bara har isha-inspelning (ej tarawih)
 
   // Kontrollera om en URL är tillgänglig — via cache (offline) eller nätverk (online)
   async function _checkAudioAvailable(url) {
@@ -5507,6 +5552,13 @@
         // Extrahera imam-namn: "2026-03-03-isha-Halil-Ibrahim.mp3" → "Halil Ibrahim"
         const match = fileName.match(/\-isha\-(.+)\.mp3$/i);
         if (match) ishaImams[datum] = decodeURIComponent(match[1]).replace(/[-_]/g, ' ');
+        // Om tarawih-inspelning saknas för detta datum → isha-only
+        _checkAudioAvailable(audioUrls[datum] || '').then(tarawihExists => {
+          if (!tarawihExists) {
+            ishaOnlyDates.add(datum);
+            injectPlayButtons(datum, true);
+          }
+        });
         markIshaAvailable(datum);
         continue;
       }
@@ -5516,6 +5568,12 @@
       const ok = await _checkAudioAvailable(oldUrl);
       if (ok) {
         ishaUrls[datum] = oldUrl;
+        // Om tarawih-inspelning saknas → isha-only
+        const tarawihOk = await _checkAudioAvailable(audioUrls[datum] || '');
+        if (!tarawihOk) {
+          ishaOnlyDates.add(datum);
+          injectPlayButtons(datum, true);
+        }
         markIshaAvailable(datum);
       }
     }
