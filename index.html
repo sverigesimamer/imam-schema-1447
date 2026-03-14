@@ -5514,14 +5514,38 @@
     return false;
   }
 
+  // Räknar hur många tarawih-checks som pågår — när alla är klara kan isha-only detekteras
+  let _tarawihCheckPending = SCHEDULE.length;
+  const _tarawihCheckDone = () => {
+    _tarawihCheckPending--;
+    if (_tarawihCheckPending <= 0) _detectIshaOnly();
+  };
+
   SCHEDULE.forEach(row => {
     const url = basePath + '/' + row.datum + '.mp3';
     audioUrls[row.datum] = url;
-    _checkAudioAvailable(url).then(ok => { if (ok) injectPlayButtons(row.datum); });
+    _checkAudioAvailable(url).then(ok => {
+      if (ok) injectPlayButtons(row.datum);
+      _tarawihCheckDone();
+    }).catch(() => _tarawihCheckDone());
 
     // Isha: stöder både nya formatet (2026-03-04-isha-Halil.mp3) och gamla (2026-03-04-isha.mp3)
     // Imam-namn extraheras från filnamnet via GitHub API (en gång), med HEAD-fallback
   });
+
+  // Körs när alla tarawih-checks är klara — markera datum utan tarawih men med isha som isha-only
+  function _detectIshaOnly() {
+    SCHEDULE.forEach(row => {
+      const datum = row.datum;
+      if (!ishaUrls[datum]) return; // ingen isha heller — skip
+      const hasPlayBtn = !!document.getElementById('audio-desktop-' + datum)?.querySelector('.play-btn');
+      if (!hasPlayBtn) {
+        // Tarawih saknas men isha finns → isha-only
+        ishaOnlyDates.add(datum);
+        injectPlayButtons(datum, true);
+      }
+    });
+  }
 
   // ★ Detektera alla isha-filer och extrahera imam-namn
   (async function detectAllIsha() {
@@ -5552,13 +5576,6 @@
         // Extrahera imam-namn: "2026-03-03-isha-Halil-Ibrahim.mp3" → "Halil Ibrahim"
         const match = fileName.match(/\-isha\-(.+)\.mp3$/i);
         if (match) ishaImams[datum] = decodeURIComponent(match[1]).replace(/[-_]/g, ' ');
-        // Om tarawih-inspelning saknas för detta datum → isha-only
-        _checkAudioAvailable(audioUrls[datum] || '').then(tarawihExists => {
-          if (!tarawihExists) {
-            ishaOnlyDates.add(datum);
-            injectPlayButtons(datum, true);
-          }
-        });
         markIshaAvailable(datum);
         continue;
       }
@@ -5568,12 +5585,6 @@
       const ok = await _checkAudioAvailable(oldUrl);
       if (ok) {
         ishaUrls[datum] = oldUrl;
-        // Om tarawih-inspelning saknas → isha-only
-        const tarawihOk = await _checkAudioAvailable(audioUrls[datum] || '');
-        if (!tarawihOk) {
-          ishaOnlyDates.add(datum);
-          injectPlayButtons(datum, true);
-        }
         markIshaAvailable(datum);
       }
     }
