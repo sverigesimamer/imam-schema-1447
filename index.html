@@ -5515,29 +5515,16 @@
   }
 
   // Räknar hur många tarawih-checks som pågår — när alla är klara kan isha-only detekteras
-  let _tarawihCheckPending = SCHEDULE.length;
-  const _tarawihCheckDone = () => {
-    _tarawihCheckPending--;
-    if (_tarawihCheckPending <= 0) _detectIshaOnly();
-  };
+  // Koordinera tarawih-checks och detectAllIsha — båda måste vara klara
+  // innan vi kan avgöra vilka datum som är isha-only
+  let _tarawihChecksDone = false;
+  let _ishaDetectDone    = false;
 
-  SCHEDULE.forEach(row => {
-    const url = basePath + '/' + row.datum + '.mp3';
-    audioUrls[row.datum] = url;
-    _checkAudioAvailable(url).then(ok => {
-      if (ok) injectPlayButtons(row.datum);
-      _tarawihCheckDone();
-    }).catch(() => _tarawihCheckDone());
-
-    // Isha: stöder både nya formatet (2026-03-04-isha-Halil.mp3) och gamla (2026-03-04-isha.mp3)
-    // Imam-namn extraheras från filnamnet via GitHub API (en gång), med HEAD-fallback
-  });
-
-  // Körs när alla tarawih-checks är klara — markera datum utan tarawih men med isha som isha-only
-  function _detectIshaOnly() {
+  function _maybeDetectIshaOnly() {
+    if (!_tarawihChecksDone || !_ishaDetectDone) return;
     SCHEDULE.forEach(row => {
       const datum = row.datum;
-      if (!ishaUrls[datum]) return; // ingen isha heller — skip
+      if (!ishaUrls[datum]) return; // ingen isha — skip
       const hasPlayBtn = !!document.getElementById('audio-desktop-' + datum)?.querySelector('.play-btn');
       if (!hasPlayBtn) {
         // Tarawih saknas men isha finns → isha-only
@@ -5546,6 +5533,24 @@
       }
     });
   }
+
+  let _tarawihCheckPending = SCHEDULE.length;
+  SCHEDULE.forEach(row => {
+    const url = basePath + '/' + row.datum + '.mp3';
+    audioUrls[row.datum] = url;
+    _checkAudioAvailable(url).then(ok => {
+      if (ok) injectPlayButtons(row.datum);
+    }).catch(() => {}).finally(() => {
+      _tarawihCheckPending--;
+      if (_tarawihCheckPending <= 0) {
+        _tarawihChecksDone = true;
+        _maybeDetectIshaOnly();
+      }
+    });
+
+    // Isha: stöder både nya formatet (2026-03-04-isha-Halil.mp3) och gamla (2026-03-04-isha.mp3)
+    // Imam-namn extraheras från filnamnet via GitHub API (en gång), med HEAD-fallback
+  });
 
   // ★ Detektera alla isha-filer och extrahera imam-namn
   (async function detectAllIsha() {
@@ -5588,6 +5593,9 @@
         markIshaAvailable(datum);
       }
     }
+    // Alla isha-checks klara — signalera till koordinatorn
+    _ishaDetectDone = true;
+    _maybeDetectIshaOnly();
   })();
 
   // Marks a row/card as having isha available (adds dot indicator)
